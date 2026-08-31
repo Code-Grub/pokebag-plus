@@ -160,6 +160,48 @@ T.eq(Bag.add(over, "ANOTHER", 1, Data), false,
 
 Data.constants.bagSize = 20
 
+-- The assertions above only pin Bag.lua's pre-existing live-re-read
+-- contract: the fixture seeds bagSize to 20 and Bag.capacity re-reads it
+-- regardless of who wrote it, so they pass even if main.lua's option
+-- wiring did nothing at all. These pin main.lua's own handler: they drive
+-- it through the real mod.options_changed event on the loaded mod's own
+-- loader, the same bus ManagerState.setOption emits on in the real game.
+
+-- Case 1: load-time apply and the schema default. Sentinel the constant
+-- away from both choices, then emit with nothing stored in
+-- loader.modOptions yet, so mod.options:get("capacity") must fall back to
+-- the options.lua schema row's default of 20.
+Data.constants.bagSize = 1
+run.loader.events:emit("mod.options_changed",
+  { mod = "pokebag_plus", key = "capacity", value = 20 })
+T.eq(Data.constants.bagSize, 20,
+  "the mod's handler ran and fell back to the schema default of 20")
+
+-- Case 2: a stored value is honoured, not just the default.
+run.loader.modOptions.pokebag_plus = { capacity = 999 }
+run.loader.events:emit("mod.options_changed",
+  { mod = "pokebag_plus", key = "capacity", value = 999 })
+T.eq(Data.constants.bagSize, 999,
+  "the mod's handler applied the stored capacity of 999")
+
+-- Case 3: it tracks the option back down too, not just up.
+run.loader.modOptions.pokebag_plus.capacity = 20
+run.loader.events:emit("mod.options_changed",
+  { mod = "pokebag_plus", key = "capacity", value = 20 })
+T.eq(Data.constants.bagSize, 20,
+  "the mod's handler followed the stored capacity back down to 20")
+
+-- Case 4: the key guard actually guards. A handler that ignored
+-- payload.key entirely would still pass cases 1-3.
+Data.constants.bagSize = 1
+run.loader.events:emit("mod.options_changed",
+  { mod = "pokebag_plus", key = "something_else", value = 999 })
+T.eq(Data.constants.bagSize, 1,
+  "an options_changed event for a different key is ignored")
+
+-- Reset so nothing downstream inherits a sentinel.
+Data.constants.bagSize = 20
+
 -- Later suites append above this line: the mod must still be loaded.
 run.release()
 

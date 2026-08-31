@@ -35,21 +35,28 @@ return function(mod)
   if optionRows then
     mod.options:define(optionRows)
 
+    -- The table to write.  The loader hands the real one to "mods.loaded"
+    -- (src/mods/Loader.lua), which is what every registry merged into and
+    -- what Bag.capacity reads.  The Data singleton is that same table in
+    -- normal play but NOT under the headless harness or the save editor,
+    -- which load against their own dataset -- so writing the singleton
+    -- would silently do nothing there.
+    local target = nil
+
     -- Bag.capacity re-reads data.constants.bagSize on every call
-    -- (src/inventory/Bag.lua:16), so writing it is enough: no reload, and
-    -- the change is visible to the next Bag.add.
-    --
-    -- Written straight to Data rather than through
-    -- mod.content.constants:patch, because this has to run again from the
-    -- options_changed handler, long after the registries were merged.  One
-    -- path that works at both moments beats a load-time path plus a
-    -- different runtime one.
-    local Data = require("src.core.Data")
+    -- (src/inventory/Bag.lua), so writing it is enough: no reload, and the
+    -- change is visible to the next Bag.add.
     local function applyCapacity()
       local value = mod.options:get("capacity") or 20
-      if Data.constants then Data.constants.bagSize = value end
+      local data = target or require("src.core.Data")
+      if data and data.constants then data.constants.bagSize = value end
     end
-    applyCapacity()
+
+    mod.events:on("mods.loaded", function(payload)
+      target = payload and payload.data or nil
+      applyCapacity()
+    end)
+
     mod.events:on("mod.options_changed", function(payload)
       if payload and payload.key == "capacity" then applyCapacity() end
     end)
