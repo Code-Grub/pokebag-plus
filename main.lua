@@ -96,9 +96,18 @@ return function(mod)
 
       -- ListMenu:draw ends by setting the colour back to white, so the
       -- header has to set black again or it renders invisible.
+      --
+      -- ListMenu:draw prints self.title left-aligned at (8,4), which is
+      -- where the left arrow goes and is a second copy of the name Header
+      -- already centres.  Blank it across the base draw so the engine
+      -- renders no title, then restore it: list.title stays the pocket's
+      -- machine-readable name for callers and tests.
       local baseDraw = list.draw
       function list:draw()
+        local title = self.title
+        self.title = ""
         baseDraw(self)
+        self.title = title
         Header.draw(Font, bag:label())
       end
 
