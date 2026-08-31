@@ -26,6 +26,78 @@ return function(mod)
     return result
   end
 
-  -- siblings and the screen claim arrive in later tasks
-  local _ = sibling
+  local Pockets = sibling("Pockets.lua")
+  local Header = sibling("Header.lua")
+  local PocketBag = sibling("PocketBag.lua")
+  if not (Pockets and Header and PocketBag) then return end
+
+  local BagMenu = require("src.ui.BagMenu")
+  local ItemEffects = require("src.inventory.ItemEffects")
+  local Font = require("src.render.Font")
+  local Sound = require("src.core.Sound")
+
+  mod.content.screens:register("BagMenu", {
+    new = function(game, opts)
+      -- The builtin builds the whole list, wired to every item flow the
+      -- engine has: the bicycle, fishing, the Poke Flute, the Escape Rope,
+      -- TM teaching, the Rare Candy level-up chain, ball throws, USE/TOSS
+      -- and QuantityBox.  We decorate rather than reimplement, so those all
+      -- keep working and future fixes to them land here for free.
+      local list = BagMenu.new(game, opts)
+
+      local bag = PocketBag.new(list, {
+        save = game.save,
+        items = game.data.items,
+        Pockets = Pockets,
+        isBall = ItemEffects.isBall,
+      })
+
+      -- Left and Right are free: ListMenu ignores them unless pageJump is
+      -- set (src/ui/ListMenu.lua:158,161) and BagMenu never sets it.
+      local baseUpdate = list.update
+      function list:update(dt)
+        bag:sync()
+        local input = self.game.input
+        if input:wasPressed("left") then bag:page(-1) return end
+        if input:wasPressed("right") then bag:page(1) return end
+        baseUpdate(self, dt)
+      end
+
+      -- ListMenu:draw ends by setting the colour back to white, so the
+      -- header has to set black again or it renders invisible.
+      local baseDraw = list.draw
+      function list:draw()
+        baseDraw(self)
+        Header.draw(Font, bag:label())
+      end
+
+      -- SELECT: the builtin's swap writes save.bagOrder with LIST indices,
+      -- which a filtered pocket breaks.  Replace it outright.
+      list.onSelectKey = function(item, l)
+        if not item then return end
+        if not l.swapIndex then
+          l.swapIndex = l.index
+          return
+        end
+        bag:swap(l.swapIndex, l.index)
+        l.swapIndex = nil
+        Sound.play(game.data, "Swap")
+      end
+
+      -- A also completes a pending swap in the builtin, with the same bad
+      -- arithmetic.  Intercept that branch; delegate everything else.
+      local baseChoose = list.onChoose
+      list.onChoose = function(item, l)
+        if list.swapIndex then
+          bag:swap(list.swapIndex, list.index)
+          list.swapIndex = nil
+          Sound.play(game.data, "Swap")
+          return
+        end
+        return baseChoose(item, l)
+      end
+
+      return list
+    end,
+  })
 end
