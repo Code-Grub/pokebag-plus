@@ -134,6 +134,32 @@ T.eq(chooseGame.save.bagOrder[3], "ANTIDOTE", "onChoose: global 3 (ANTIDOTE) unm
 T.eq(chooseGame.save.bagOrder[4], "POKE_BALL", "onChoose: global 4 now POKE_BALL")
 chooseKeys.pressed = nil
 
+local Bag = require("src.inventory.Bag")
+
+-- default is vanilla
+T.eq(Bag.capacity(Data), 20, "defaults to the vanilla 20 slots")
+
+-- raising it takes effect with no reload, because Bag.capacity re-reads
+-- data.constants.bagSize on every call
+Data.constants.bagSize = 999
+T.eq(Bag.capacity(Data), 999, "the option value takes effect live")
+
+-- an over-full bag survives being lowered again: Bag.add refuses NEW slots
+-- while over the limit, but nothing already held is lost
+local over = { inventory = {}, bagOrder = {} }
+for i = 1, 25 do
+  local id = "FILLER_" .. i
+  over.inventory[id] = 1
+  over.bagOrder[#over.bagOrder + 1] = id
+end
+T.eq(Bag.slots(over), 25, "25 slots held at the 999 setting")
+Data.constants.bagSize = 20
+T.eq(Bag.slots(over), 25, "lowering the limit loses nothing already held")
+T.eq(Bag.add(over, "ANOTHER", 1, Data), false,
+  "but no new slot is accepted while over the limit")
+
+Data.constants.bagSize = 20
+
 -- Later suites append above this line: the mod must still be loaded.
 run.release()
 

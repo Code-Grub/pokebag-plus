@@ -31,6 +31,30 @@ return function(mod)
   local PocketBag = sibling("PocketBag.lua")
   if not (Pockets and Header and PocketBag) then return end
 
+  local optionRows = sibling("options.lua")
+  if optionRows then
+    mod.options:define(optionRows)
+
+    -- Bag.capacity re-reads data.constants.bagSize on every call
+    -- (src/inventory/Bag.lua:16), so writing it is enough: no reload, and
+    -- the change is visible to the next Bag.add.
+    --
+    -- Written straight to Data rather than through
+    -- mod.content.constants:patch, because this has to run again from the
+    -- options_changed handler, long after the registries were merged.  One
+    -- path that works at both moments beats a load-time path plus a
+    -- different runtime one.
+    local Data = require("src.core.Data")
+    local function applyCapacity()
+      local value = mod.options:get("capacity") or 20
+      if Data.constants then Data.constants.bagSize = value end
+    end
+    applyCapacity()
+    mod.events:on("mod.options_changed", function(payload)
+      if payload and payload.key == "capacity" then applyCapacity() end
+    end)
+  end
+
   local BagMenu = require("src.ui.BagMenu")
   local ItemEffects = require("src.inventory.ItemEffects")
   local Font = require("src.render.Font")
