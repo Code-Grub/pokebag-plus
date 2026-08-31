@@ -33,4 +33,17 @@ function Pockets.pocketOf(id, def, env)
   return "ITEMS"
 end
 
+-- Split an acquisition-ordered id list into the four pockets.  Each entry
+-- keeps its index in the source order, which is what lets a SELECT swap in
+-- a filtered pocket be applied to the global save.bagOrder.
+function Pockets.partition(order, items, env)
+  local out = {}
+  for _, key in ipairs(Pockets.ORDER) do out[key] = {} end
+  for i, id in ipairs(order or {}) do
+    local bucket = out[Pockets.pocketOf(id, items and items[id], env)]
+    bucket[#bucket + 1] = { id = id, global = i }
+  end
+  return out
+end
+
 return Pockets
