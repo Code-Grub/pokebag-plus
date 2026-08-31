@@ -74,6 +74,7 @@ function PocketBag:page(delta)
   local order = self.env.Pockets.ORDER
   -- remember where this pocket's cursor was
   self.cursors[self:key()] = { index = self.list.index, scroll = self.list.scroll }
+  self:clearSwap()
   self.pocket = ((self.pocket - 1 + delta) % #order) + 1
   PocketBag.lastPocket = self.pocket
   self:refresh()
@@ -82,6 +83,31 @@ function PocketBag:page(delta)
   self.list.index = math.max(1, math.min(remembered and remembered.index or 1, math.max(1, n)))
   self.list.scroll = remembered and remembered.scroll or 0
   if self.list.scroll >= n then self.list.scroll = 0 end
+end
+
+-- Exchange two rows of the CURRENT pocket in the global save.bagOrder.
+--
+-- BagMenu does this with list indices (src/ui/BagMenu.lua:436 and :446),
+-- which is correct only while list index equals bagOrder index.  Under a
+-- filter it is not: the second entry of BALLS is not the second entry of
+-- bagOrder.  globalOf is the translation, built by refresh().
+--
+-- Bag.order returns the live save.bagOrder table, so writing through it is
+-- the persistent reorder, exactly as in vanilla.
+function PocketBag:swap(localA, localB)
+  local ga, gb = self.globalOf[localA], self.globalOf[localB]
+  if not (ga and gb) then return false end
+  local order = self.env.save.bagOrder
+  order[ga], order[gb] = order[gb], order[ga]
+  self:refresh()
+  return true
+end
+
+-- A pending swap holds indices into the pocket that was on screen when it
+-- started.  Carrying it across a page would apply them to a different
+-- pocket's rows, so paging drops it.
+function PocketBag:clearSwap()
+  self.list.swapIndex = nil
 end
 
 return PocketBag

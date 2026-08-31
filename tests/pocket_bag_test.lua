@@ -97,4 +97,36 @@ local before = list.items
 bag:sync()
 T.eq(list.items, before, "sync is a no-op when nothing replaced the table")
 
+-- THE test.  BagMenu swaps save.bagOrder positions using LIST indices, which
+-- is only correct while the list is the whole bag.  In BALLS, local 1 and 3
+-- are global 2 and 5, so a naive swap would move POTION and ANTIDOTE and
+-- leave the balls where they were.
+local save
+bag, list, save = fixture()
+bag:page(1)                                   -- BALLS
+T.eq(list.items[1].value, "POKE_BALL", "local 1 is POKE BALL")
+T.eq(list.items[3].value, "ULTRA_BALL", "local 3 is ULTRA BALL")
+T.eq(bag.globalOf[1], 2, "which is global 2")
+T.eq(bag.globalOf[3], 5, "and global 5")
+
+bag:swap(1, 3)
+
+T.eq(save.bagOrder[2], "ULTRA_BALL", "global 2 now holds ULTRA BALL")
+T.eq(save.bagOrder[5], "POKE_BALL", "global 5 now holds POKE BALL")
+-- the items that were never touched must not have moved
+T.eq(save.bagOrder[1], "POTION", "POTION did not move")
+T.eq(save.bagOrder[3], "ANTIDOTE", "ANTIDOTE did not move")
+T.eq(save.bagOrder[4], "GREAT_BALL", "GREAT BALL did not move")
+T.eq(save.bagOrder[6], "BICYCLE", "BICYCLE did not move")
+-- and the visible pocket reflects it
+T.eq(list.items[1].value, "ULTRA_BALL", "the pocket shows the swap")
+T.eq(list.items[3].value, "POKE_BALL", "both ends of it")
+
+-- a half-finished move must not survive a page: the indices it captured
+-- belong to a pocket that is no longer on screen
+bag, list = fixture()
+list.swapIndex = 1
+bag:page(1)
+T.eq(list.swapIndex, nil, "paging clears a pending swap")
+
 T.finish("pocket_bag")
