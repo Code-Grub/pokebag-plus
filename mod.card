@@ -1,0 +1,21 @@
+-- Sharing metadata; read by tooling and the manager detail pane.
+return {
+  summary = "The bag in four pockets -- ITEMS, BALLS, KEY ITEMS, TM/HM -- paged with Left and Right.",
+  author = "camwrightdc",
+  tags = { "ui", "quality-of-life", "bag" },
+  differences = {
+    changed = {
+      "the bag is split into four pockets instead of one flat list",
+      "Left and Right page between pockets from anywhere in the list",
+      "SELECT still reorders, now confined to the pocket you are in",
+    },
+    added = {
+      "an optional 999 slot bag, off by default",
+    },
+    known = {
+      "raising the slot limit above 20 makes .sav export lossy: the Game Boy bag format holds 20 entries, so a conversion keeps the first 20 in acquisition order and drops the rest",
+      "the 99 per-stack cap is the engine's and is unchanged: the option controls how many distinct items fit, not how many of each",
+    },
+  },
+  compat = { engine = ">=1.0.0 <2.0.0", modApi = 2 },
+}
