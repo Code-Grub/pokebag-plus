@@ -4,6 +4,14 @@ Splits the Gen 1 bag into four pockets -- ITEMS, BALLS, KEY ITEMS and
 TM/HM -- paged with Left and Right, in the style the Game Boy would have
 shipped. By camwrightdc.
 
+![The ITEMS pocket: the pocket name centred between two paging arrows, above the usual item list](images/screen_items.png)
+
+![The KEY ITEMS pocket, the longest of the four names, still clear of both arrows](images/screen_key.png)
+
+The arrows are drawn by hand rather than taken from the font. The charmap
+has a filled right arrow and no left one, and a glyph beside a hand-drawn
+cousin reads as mismatched, so both sides are drawn the same way.
+
 ## Try it
 
     cmd /c mklink /J game\mods\pokebag_plus <path to this repo>
