@@ -39,6 +39,7 @@ the flat vanilla bag exactly as it was.
 
 `BAG SLOTS`, in the mod manager, is 20 by default -- the vanilla limit.
 Setting it to 999 lifts the cap on how many distinct items the bag holds.
+See Limits below before raising it: past 20 it makes `.sav` export lossy.
 
 ## Limits
 

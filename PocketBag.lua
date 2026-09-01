@@ -51,6 +51,7 @@ function PocketBag:refresh()
   end
   self.filtered = rows
   self.globalOf = globals
+  self.orderLen = #save.bagOrder
   self.list.items = rows
   self.list.title = self:label()
   if self.list.index > #rows then
@@ -76,9 +77,18 @@ end
 -- O(1): refresh() always leaves the two the same length, so any difference
 -- means the list moved underneath us.  A `right` rewrite changes neither,
 -- and correctly does not refresh.
+--
+-- The row-count check is a proxy, not an invariant: an item removed from a
+-- DIFFERENT pocket shifts save.bagOrder without changing the current
+-- pocket's row count, leaving globalOf stale while the count guard stays
+-- silent.  Unreachable today (nothing removes from an inactive pocket
+-- behind the player's back), but orderLen -- the length of save.bagOrder as
+-- of the last refresh -- catches it too, so the guard holds even if that
+-- changes.
 function PocketBag:sync()
   if self.list.items ~= self.filtered
-      or #self.list.items ~= #self.globalOf then
+      or #self.list.items ~= #self.globalOf
+      or #self.env.save.bagOrder ~= self.orderLen then
     self:refresh()
   end
 end
@@ -105,12 +115,15 @@ end
 -- filter it is not: the second entry of BALLS is not the second entry of
 -- bagOrder.  globalOf is the translation, built by refresh().
 --
--- Bag.order returns the live save.bagOrder table, so writing through it is
--- the persistent reorder, exactly as in vanilla.
+-- BagMenu.new calls buildItems, which calls Bag.order (src/ui/BagMenu.lua)
+-- and that normalizes save.bagOrder -- creating it for old saves, pruning
+-- stale and duplicate ids -- before PocketBag ever reads it raw.  The mod
+-- depends on that construction order rather than normalizing it itself.
 function PocketBag:swap(localA, localB)
   local ga, gb = self.globalOf[localA], self.globalOf[localB]
   if not (ga and gb) then return false end
   local order = self.env.save.bagOrder
+  if ga < 1 or ga > #order or gb < 1 or gb > #order then return false end
   order[ga], order[gb] = order[gb], order[ga]
   self:refresh()
   return true

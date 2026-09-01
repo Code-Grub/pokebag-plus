@@ -1,3 +1,16 @@
-tests/
-docs/
-tools/
+# modkit matches these by exact relative path, not by prefix
+# (tools/modkit.py:161-182): a bare directory name matches nothing.
+tests/header_test.lua
+tests/pocket_bag_test.lua
+tests/pockets_test.lua
+tests/pokebag_plus_test.lua
+tools/screenshots.lua
+tools/screenshots.ps1
+images/screen_balls.png
+images/screen_items.png
+images/screen_key.png
+images/screen_tmhm.png
+images/before/screen_balls.png
+images/before/screen_items.png
+images/before/screen_key.png
+images/before/screen_tmhm.png

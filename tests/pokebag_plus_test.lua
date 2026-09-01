@@ -134,6 +134,46 @@ T.eq(chooseGame.save.bagOrder[3], "ANTIDOTE", "onChoose: global 3 (ANTIDOTE) unm
 T.eq(chooseGame.save.bagOrder[4], "POKE_BALL", "onChoose: global 4 now POKE_BALL")
 chooseKeys.pressed = nil
 
+-- The header label must reach Font/Header only after passing through
+-- Strings (src/core/Strings.lua), or a translation mod cannot localize the
+-- pocket names.  Header.draw's own inputs are not reachable from here --
+-- main.lua closes over Header as a local sibling loaded via mod:read, not a
+-- require -- but Strings IS a normal require, and Lua caches requires by
+-- module name, so the table below is the exact same object main.lua's own
+-- require("src.core.Strings") returned.  Spying on Strings.get therefore
+-- genuinely discriminates: if main.lua regressed to handing bag:label() to
+-- Header.draw raw, Strings.get would never see the pocket label below.
+do
+  local Strings = require("src.core.Strings")
+  local seen = {}
+  local realGet = Strings.get
+  Strings.get = function(source, ...)
+    seen[#seen + 1] = source
+    return realGet(source, ...)
+  end
+  local drawOk, drawErr = pcall(function() screen:draw() end)
+  Strings.get = realGet
+  T.check(drawOk, "draw() does not error (" .. tostring(drawErr) .. ")")
+
+  local sawLabel = false
+  for _, s in ipairs(seen) do
+    if s == screen.title then sawLabel = true end
+  end
+  T.check(sawLabel, "the pocket label (" .. tostring(screen.title)
+    .. ") passes through Strings before it reaches the header")
+
+  -- And the catalog itself is a transparent pass-through here: nothing in
+  -- this process has called Strings.load, so the four pocket names must
+  -- round-trip unchanged, which is the "vanilla boot draws byte-identical
+  -- text" contract Strings.lua documents for an empty catalog.
+  local Pockets = dofile("mods/pokebag_plus/Pockets.lua")
+  for _, key in ipairs(Pockets.ORDER) do
+    local label = Pockets.LABEL[key]
+    T.eq(Strings(label), label,
+      "Strings round-trips " .. label .. " under the default catalog")
+  end
+end
+
 local Bag = require("src.inventory.Bag")
 
 -- default is vanilla

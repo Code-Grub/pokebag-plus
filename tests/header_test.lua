@@ -34,18 +34,26 @@ for _, r in ipairs(rects) do
   T.eq(r.mode, "fill", "filled, not outlined")
   T.eq(r.x, math.floor(r.x), "on a whole pixel in x")
   T.eq(r.y, math.floor(r.y), "on a whole pixel in y")
+  T.eq(r.w, 1, "every column is exactly one pixel wide")
 end
 T.eq(rects[1].h, 5, "the trailing column is the full 5 tall")
 T.eq(rects[3].h, 1, "the apex is a single pixel")
 T.eq(rects[3].x, 8, "and it sits at the leading edge")
+T.eq(rects[2].x, 9, "the middle column sits between the other two")
+T.eq(rects[2].h, 3, "the middle column steps down to 3 tall")
 
 rects = {}
 H.rightArrow(92, 6)
 T.eq(#rects, 3, "the right arrow is three columns")
+for _, r in ipairs(rects) do
+  T.eq(r.w, 1, "every column is exactly one pixel wide")
+end
 T.eq(rects[1].x, 92, "its full-height column is at the leading edge")
 T.eq(rects[1].h, 5, "5 tall")
 T.eq(rects[3].h, 1, "tapering to a single pixel")
 T.eq(rects[3].x, 94, "at the outer edge, mirroring the left arrow")
+T.eq(rects[2].x, 93, "the middle column sits between the other two")
+T.eq(rects[2].h, 3, "the middle column steps down to 3 tall")
 
 love.graphics.rectangle = realRect
 

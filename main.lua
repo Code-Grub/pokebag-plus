@@ -66,6 +66,7 @@ return function(mod)
   local ItemEffects = require("src.inventory.ItemEffects")
   local Font = require("src.render.Font")
   local Sound = require("src.core.Sound")
+  local Strings = require("src.core.Strings")
 
   mod.content.screens:register("BagMenu", {
     new = function(game, opts)
@@ -104,11 +105,20 @@ return function(mod)
       -- machine-readable name for callers and tests.
       local baseDraw = list.draw
       function list:draw()
+        -- StateStack (src/core/StateStack.lua) updates only the top state
+        -- but draws every visible state bottom-up, and the bag is opaque.
+        -- The toss path pushes a TextBox after reassigning list.items to
+        -- the full unfiltered bag (BagMenu.lua), so from that frame on
+        -- update() above stops running and only draw() still fires each
+        -- frame -- without this, the bag would render every item under
+        -- whichever pocket header was last set until the message closes.
+        -- sync() is idempotent and O(1) when nothing moved.
+        bag:sync()
         local title = self.title
         self.title = ""
         baseDraw(self)
         self.title = title
-        Header.draw(Font, bag:label())
+        Header.draw(Font, Strings(bag:label()))
       end
 
       -- SELECT: the builtin's swap writes save.bagOrder with LIST indices,
