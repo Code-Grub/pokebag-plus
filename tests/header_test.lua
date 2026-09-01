@@ -8,17 +8,39 @@ local H = dofile("mods/pokebag_plus/Header.lua")
 -- The four names at the GB's flat 8px advance
 local W = { ITEMS = 40, BALLS = 40, ["KEY ITEMS"] = 72, ["TM/HM"] = 40 }
 
--- Names centre on a fixed midpoint, so only the name moves as pockets cycle
-T.eq(H.nameX(W["KEY ITEMS"]), 16, "the longest name starts at 16")
-T.eq(H.nameX(W.ITEMS), 32, "a short name centres on the same midpoint")
-T.eq(H.nameX(W.ITEMS) + W.ITEMS, 72, "and ends short of the right arrow")
+-- The header sits in the same columns the list below uses, so it lines up
+-- with what it describes.  These are the engine's own numbers, from
+-- src/ui/ListMenu.lua's draw: cursor at x=8, label at x=16, right-aligned
+-- quantity ending at x=152, first row at y=24.
+local CURSOR_X, LABEL_X, COUNT_RIGHT, FIRST_ROW_Y = 8, 16, 152, 24
 
--- The longest name must not collide with the fixed right arrow
-T.check(H.nameX(W["KEY ITEMS"]) + W["KEY ITEMS"] <= H.RIGHT_X,
-  "KEY ITEMS clears the right arrow")
--- ...and the shortest must not collide with the fixed left arrow
-T.check(H.nameX(W.ITEMS) >= H.LEFT_X + 3,
-  "a short name clears the left arrow")
+T.eq(H.LEFT_X, CURSOR_X, "the left arrow sits in the list's cursor column")
+T.eq(H.NAME_X, LABEL_X, "the pocket name sits in the list's label column")
+T.eq(H.RIGHT_X + 3, COUNT_RIGHT,
+  "the right arrow's right edge lands where the quantity column ends")
+
+-- Nothing centres any more, so no name can collide with either arrow: the
+-- only question is whether the longest one still clears the right arrow.
+T.check(H.NAME_X + W["KEY ITEMS"] <= H.RIGHT_X,
+  "KEY ITEMS, the longest name, clears the right arrow")
+for name, width in pairs(W) do
+  T.check(H.NAME_X + width <= H.RIGHT_X, name .. " clears the right arrow")
+end
+
+-- The box is three tiles tall at the very top, which is the space ListMenu's
+-- own title already occupied.  If it grew, it would start covering row one.
+local bx, by, bw, bh = H.BOX[1], H.BOX[2], H.BOX[3], H.BOX[4]
+T.eq(bx, 0, "the box starts at the left edge")
+T.eq(by, 0, "and at the top")
+T.eq(bw, 20, "and spans the full 20 tiles")
+T.eq((by + bh) * 8, FIRST_ROW_Y, "and ends exactly where the first row begins")
+
+-- The interior row is one tile, and the text and arrows must both sit inside
+-- it rather than on a border.
+T.check(H.TEXT_Y >= (by + 1) * 8 and H.TEXT_Y < (by + bh - 1) * 8,
+  "the name draws inside the box, not on a border")
+T.check(H.ARROW_Y >= (by + 1) * 8 and H.ARROW_Y + 5 <= (by + bh - 1) * 8,
+  "the whole 5px arrow fits inside the box's interior row")
 
 -- Arrow geometry: 3 wide, 5 tall, whole pixels, apex on the outer edge.
 -- Capture the rectangles rather than trusting the eye.

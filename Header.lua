@@ -13,18 +13,26 @@
 
 local Header = {}
 
-Header.LEFT_X  = 8    -- left arrow, 3 wide
-Header.RIGHT_X = 92   -- right arrow, 3 wide; clears the longest name
-Header.MID_X   = 52   -- names centre here
-Header.TEXT_Y  = 4    -- matches ListMenu's own title row
-Header.ARROW_Y = 6    -- 5 tall, so it straddles the text row
+-- A bordered window across the top, the same primitive the engine frames its
+-- money box and text boxes with, so the header reads as a window rather than
+-- as text floating on the list's white fill.  Three tiles tall: two borders
+-- and one interior row.  It occupies only the space ListMenu's own title
+-- already used, so no list row is lost -- the first row still starts at y=24,
+-- immediately under the bottom border.
+Header.BOX = { 0, 0, 20, 3 }   -- tile coords for Font.drawBox
 
--- Every element sits at a fixed x.  Anchoring the right arrow to the end of
--- the name instead would swing it 32px between TM/HM and KEY ITEMS, which
--- reads as the interface twitching rather than as a page turning.
-function Header.nameX(width)
-  return math.floor(Header.MID_X - width / 2)
-end
+-- Every element sits at a fixed x, and each one is a column the list below
+-- already uses, so the header lines up with what it describes:
+Header.LEFT_X  = 8    -- the cursor column: the arrow sits over the cursor
+Header.NAME_X  = 16   -- the label column: the name sits over the item names
+Header.RIGHT_X = 149  -- 3 wide, so its right edge is 152 -- where the
+                      -- quantity column ends and right-aligns
+Header.TEXT_Y  = 8    -- the box's interior row
+Header.ARROW_Y = 10   -- the 5px arrow centred in that 8px row
+
+-- Fixed columns rather than centring.  Anchoring anything to the name's own
+-- width would swing it 32px between TM/HM and KEY ITEMS, which reads as the
+-- interface twitching rather than as a page turning.
 
 function Header.leftArrow(x, y)
   love.graphics.rectangle("fill", x + 2, y,     1, 5)
@@ -40,12 +48,14 @@ end
 
 -- ListMenu:draw sets the colour back to white as its last statement, so the
 -- caller wrapping it has to set black again or everything here renders
--- invisible against the white fill.
+-- invisible against the white fill.  Font.drawBox fills its own interior
+-- white and restores whatever colour it found, so black survives it.
 function Header.draw(Font, label)
   love.graphics.setColor(0, 0, 0, 1)
+  Font.drawBox(Header.BOX[1], Header.BOX[2], Header.BOX[3], Header.BOX[4])
   Header.leftArrow(Header.LEFT_X, Header.ARROW_Y)
   Header.rightArrow(Header.RIGHT_X, Header.ARROW_Y)
-  Font.draw(label, Header.nameX(Font.width(label)), Header.TEXT_Y)
+  Font.draw(label, Header.NAME_X, Header.TEXT_Y)
   love.graphics.setColor(1, 1, 1, 1)
 end
 
