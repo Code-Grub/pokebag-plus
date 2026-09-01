@@ -31,6 +31,10 @@ on:
       - '.github/**'
       - '**.md'
       - 'LICENSE'
+      # images never reach the archive (.modkitignore excludes them), so a
+      # logo or screenshot change can never alter what a player installs.
+      # Without this every thumbnail tweak cuts a release.
+      - 'images/**'
   workflow_dispatch:
     inputs:
       version:
