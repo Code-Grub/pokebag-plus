@@ -8,11 +8,13 @@
   "category": "UI",
   "game_version": ">=0.0.0-0 <2.0.0",
   "priority": 100,
-  "permissions": ["engine_internals"],
+  "permissions": [
+    "engine_internals"
+  ],
   "dependencies": [],
   "optional_dependencies": [],
   "conflicts": [],
   "options_schema": "options.lua",
   "description": "Splits the bag into four pockets -- ITEMS, BALLS, KEY ITEMS and TM/HM -- paged with Left and Right. Keeps the vanilla 20 slot limit and acquisition order.",
-  "github": "Code-Grub/gen1recomp-pokebag-plus"
+  "github": "Code-Grub/pokebag-plus"
 }

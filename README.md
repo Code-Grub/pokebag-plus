@@ -1,12 +1,35 @@
-# PokeBag+
+<div align="center">
 
-Splits the Gen 1 bag into four pockets -- ITEMS, BALLS, KEY ITEMS and
+<img src="images/logo.png" alt="PokeBag+" width="640"/>
+
+**A bag overhaul for the [Pokémon Gen 1 Recompilation Project](https://github.com/bryanthaboi/pokemon-gen1-recomp-project).**
+
+Four Gen 2 pockets paged with Left and Right · acquisition order kept · the SELECT swap still works
+
+<p align="center">
+  <a href="https://github.com/Code-Grub/pokebag-plus/releases/latest"><img src="https://img.shields.io/github/v/release/Code-Grub/pokebag-plus?style=flat&label=release&color=306230" alt="Latest release"/></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/Code-Grub/pokebag-plus?style=flat&color=306230" alt="MIT license"/></a>
+  <img src="https://img.shields.io/badge/lua-L%C3%96VE-306230?style=flat" alt="Written in Lua for LOVE"/>
+</p>
+
+</div>
+
+---
+
+PokeBag+ splits the bag into four pockets -- ITEMS, BALLS, KEY ITEMS and
 TM/HM -- paged with Left and Right, in the style the Game Boy would have
-shipped. By camwrightdc.
+shipped. It keeps the vanilla 20 slot limit, keeps acquisition order, and
+keeps SELECT working, now confined to the pocket you are in.
 
-![The ITEMS pocket: the pocket name centred between two paging arrows, above the usual item list](images/screen_items.png)
+<p align="center">
+  <img src="images/screen_items.png" width="480" alt="The ITEMS pocket: the pocket name centred between two paging arrows, in a window sharing its borders with the item list below"/><br/>
+  <sub>The header shares its left and right borders with the bag window, and its bottom border is that window's top edge</sub>
+</p>
 
-![The KEY ITEMS pocket, the longest of the four names, still clear of both arrows](images/screen_key.png)
+<p align="center">
+  <img src="images/screen_key.png" width="480" alt="The KEY ITEMS pocket, the longest of the four names, still clear of both arrows"/><br/>
+  <sub>KEY ITEMS, the longest of the four names, still clear of both arrows</sub>
+</p>
 
 The arrows are drawn by hand rather than taken from the font. The charmap
 has a filled right arrow and no left one, and a glyph beside a hand-drawn

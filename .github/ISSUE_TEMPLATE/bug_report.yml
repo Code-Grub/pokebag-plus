@@ -1,0 +1,118 @@
+name: Bug report
+description: Something in the bag behaves wrong, looks wrong, or crashes.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. The fields below are the ones that usually
+        decide whether a bag bug is reproducible, so please fill them in
+        before describing the problem.
+
+  - type: input
+    id: mod-version
+    attributes:
+      label: PokeBag+ version
+      description: The version in the mod manager, or the release zip you installed.
+      placeholder: "0.1.0"
+    validations:
+      required: true
+
+  - type: input
+    id: game-version
+    attributes:
+      label: Game version
+      description: Which build of the Gen 1 Recompilation Project you are running.
+      placeholder: "e.g. 1.2.0, or the commit you built from"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install
+    attributes:
+      label: How is it installed?
+      options:
+        - Mod manager (FIND MODS / Import mod .zip)
+        - Manually unzipped into mods/pokebag_plus/
+        - Running from a git checkout
+    validations:
+      required: true
+
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where did it happen?
+      options:
+        - The bag from the START menu
+        - The bag during a battle
+        - Both
+        - Somewhere else
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened, and what did you expect instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: |
+        Which pocket you were in, where the cursor was, and which inputs you
+        pressed. Screenshots or a short clip help a lot for anything that
+        looks wrong on screen.
+      placeholder: |
+        1. Open the bag from the START menu
+        2. Press Right twice to reach KEY ITEMS
+        3. Press SELECT on the first row, then Down, then SELECT again
+        4. ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: capacity
+    attributes:
+      label: What is BAG SLOTS set to?
+      description: |
+        The option in the mod manager. It ships at 20, the vanilla limit.
+        Above 20 the bag holds more than the Game Boy save format does, so a
+        .sav export keeps the first 20 items in acquisition order and drops
+        the rest -- if items went missing after a save conversion, that is
+        very likely the cause rather than a bug.
+      options:
+        - "20 (the default)"
+        - "999"
+        - "Not sure"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: sav-history
+    attributes:
+      label: Has this save been through a .sav export or import?
+      options:
+        - "No, the save has only ever been used in the recomp"
+        - "Yes, it was imported from a .sav"
+        - "Yes, it was exported to a .sav and brought back"
+        - "Not sure"
+    validations:
+      required: true
+
+  - type: textarea
+    id: other-mods
+    attributes:
+      label: Other mods enabled
+      description: |
+        Anything else that touches the bag, the item list, or the menus. Mods
+        that also claim the BagMenu screen will conflict with this one.
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error text or log output
+      description: Paste any Lua error or console output here. It will be formatted automatically.
+      render: text
