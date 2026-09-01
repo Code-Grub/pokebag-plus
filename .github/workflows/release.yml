@@ -212,13 +212,28 @@ jobs:
         run: |
           set -euo pipefail
 
-          prev="$(git tag -l 'v*' --sort=-v:refname | grep -v "^${TAG}$" | head -1 || true)"
-          range="${prev:+${prev}..}$GITHUB_SHA"
-          changes="$(git log --no-merges --pretty='- %s' "$range" | head -50 || true)"
+          # Prefer this version's CHANGELOG section: it is the curated
+          # summary of what changed for a player.  The commit list is raw
+          # churn -- on a first release, with no earlier tag to diff
+          # against, it dumps every scaffolding and thumbnail commit.
+          changes="$(awk -v v="$VERSION" '
+            index($0,"## ["v"]")==1 {f=1; next}
+            f && /^## \[/ {exit}
+            f {print}
+          ' CHANGELOG.md 2>/dev/null || true)"
+          changes="$(printf '%s\n' "$changes" | sed -e '/./,$!d' | tac | sed -e '/./,$!d' | tac)"
+
+          # No entry for this version: fall back to the commits since the
+          # last tag, which is better than empty notes.
+          if [ -z "$(printf '%s' "$changes" | tr -d '[:space:]')" ]; then
+            prev="$(git tag -l 'v*' --sort=-v:refname | grep -v "^${TAG}$" | head -1 || true)"
+            range="${prev:+${prev}..}$GITHUB_SHA"
+            changes="$(git log --no-merges --pretty='- %s' "$range" | head -50 || true)"
+          fi
 
           notes=$'Download the .zip and install it from the game: MODS > Import mod .zip.'
           if [ -n "$changes" ]; then
-            notes+=$'\n\n## Changes\n\n'"$changes"
+            notes+=$'\n\n'"$changes"
           fi
           printf 'Release notes:\n%s\n' "$notes"
 
