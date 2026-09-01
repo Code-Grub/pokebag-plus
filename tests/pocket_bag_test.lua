@@ -129,4 +129,37 @@ list.swapIndex = 1
 bag:page(1)
 T.eq(list.swapIndex, nil, "paging clears a pending swap")
 
+-- Using the LAST of a stack removes the row in place (the consumed branch of
+-- src/ui/BagMenu.lua), so the table's identity never changes -- but the id
+-- also leaves save.bagOrder, shifting every later entry and leaving globalOf
+-- stale.  Swapping through stale indices reorders items the player never
+-- touched: use the last Poke Ball, reorder two balls, and POTION moves.
+bag, list, save = fixture()
+bag:page(1)                                   -- BALLS
+T.eq(#list.items, 3, "BALLS starts with three rows")
+T.eq(bag.globalOf[1], 2, "POKE BALL is global 2")
+
+-- reproduce the engine's consumed branch: last one used, so the id leaves the
+-- inventory and the order, and the row goes from the SAME table
+save.inventory.POKE_BALL = nil
+for i, oid in ipairs(save.bagOrder) do
+  if oid == "POKE_BALL" then table.remove(save.bagOrder, i) break end
+end
+for i, it in ipairs(list.items) do
+  if it.value == "POKE_BALL" then table.remove(list.items, i) break end
+end
+T.eq(list.items, bag.filtered, "the table's identity did not change, so identity alone cannot notice")
+
+bag:sync()
+T.eq(#bag.globalOf, #list.items, "sync noticed the row count moved and rebuilt")
+T.eq(bag.globalOf[1], 3, "GREAT BALL shifted down to global 3")
+
+-- now the swap must move the two balls and nothing else
+bag:swap(1, 2)
+T.eq(save.bagOrder[1], "POTION", "POTION did not move")
+T.eq(save.bagOrder[2], "ANTIDOTE", "ANTIDOTE did not move")
+T.eq(save.bagOrder[3], "ULTRA_BALL", "the two balls exchanged")
+T.eq(save.bagOrder[4], "GREAT_BALL", "both ends of the exchange")
+T.eq(save.bagOrder[5], "BICYCLE", "BICYCLE did not move")
+
 T.finish("pocket_bag")

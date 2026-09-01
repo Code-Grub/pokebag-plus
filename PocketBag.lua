@@ -61,11 +61,24 @@ end
 
 -- BagMenu reassigns list.items after a toss or a swap, which would drop the
 -- filter.  Every one of those assigns a NEW table, so identity catches them
--- all in O(1).  In-place edits (the `consumed` branch updating `right` or
--- removing a row) do not trip this, and do not need to: they act on our
--- table, holding our entries, which is already correct under a filter.
+-- all in O(1).
+--
+-- Identity alone is not enough.  The `consumed` branch of
+-- src/ui/BagMenu.lua edits the SAME table in place: it rewrites `right`
+-- when a stack shrinks, and table.removes the row when the last one goes.
+-- A removal also drops the id from save.bagOrder, so every later entry
+-- shifts and globalOf goes stale while the table's identity never changes.
+-- A swap then remaps through stale indices and reorders items the player
+-- never touched -- use the last Potion, reorder two things, and two Poke
+-- Balls move instead.
+--
+-- Comparing the row count against globalOf catches exactly that, still in
+-- O(1): refresh() always leaves the two the same length, so any difference
+-- means the list moved underneath us.  A `right` rewrite changes neither,
+-- and correctly does not refresh.
 function PocketBag:sync()
-  if self.list.items ~= self.filtered then
+  if self.list.items ~= self.filtered
+      or #self.list.items ~= #self.globalOf then
     self:refresh()
   end
 end
