@@ -20,20 +20,29 @@ local Header = {}
 -- already used, so no list row is lost -- the first row still starts at y=24,
 -- immediately under the bottom border.
 --
--- Inset one tile from each screen edge, so the box's OUTER edges land on the
--- list's own extent rather than overhanging it: the left border fills the
--- cursor column (x=8), the right border the last quantity tile (ending at
--- x=152).  A full-width box is the engine's idiom for the bottom text box,
--- but here it stuck out 8px further left than anything else on screen.
-Header.BOX = { 1, 0, 18, 3 }   -- tile coords for Font.drawBox: x 8..152
+-- Sized and placed against the engine's own bag window, so the two read as
+-- one stacked unit rather than two boxes that happen to be near each other.
+-- src/ui/ListMenu.lua draws the bag through drawItemBox with
+--   ITEM_BOX = { tx = 4, ty = 2, tw = 16, th = 11 }
+-- which is pokered's LIST_MENU_BOX 4,2-19,12 (data/text_boxes.asm).  The
+-- header takes that box's tx and tw exactly, so the left and right borders
+-- line up, and sits at ty=0 so its bottom border row falls on the item box's
+-- top border row -- one shared divider, not two edges 8px apart.
+--
+-- Do not "fix" the apparent overlap: the strip above ITEM_BOX is only two
+-- tiles, and a bordered box needs three (two borders and an interior), so
+-- sharing the divider row is what makes a framed header fit at all.  The
+-- engine stacks its own money box the same way in shop mode.
+Header.BOX = { 4, 0, 16, 3 }   -- tile coords for Font.drawBox: x 32..160
 
--- Interior runs x=16..144, so the name centres on 80.  The arrows are fixed
+-- Interior runs x=40..152, so the name centres on 96.  The arrows are fixed
 -- and the name moves: anchoring an arrow to the name's own width would swing
 -- it 32px between TM/HM and KEY ITEMS, which reads as the interface twitching
 -- rather than as a page turning.
-Header.LEFT_X  = 16   -- left arrow at the interior's left edge
-Header.RIGHT_X = 141  -- 3 wide, so its right edge is the interior's, 144
-Header.MID_X   = 80   -- interior centre; names centre here
+Header.LEFT_X  = 40   -- interior's left edge, and ITEM_CURSOR_X: the arrow
+                      -- sits directly over the list's cursor column
+Header.RIGHT_X = 149  -- 3 wide, so its right edge is the interior's, 152
+Header.MID_X   = 96   -- interior centre; names centre here
 Header.TEXT_Y  = 8    -- the box's interior row
 Header.ARROW_Y = 10   -- the 5px arrow centred in that 8px row
 

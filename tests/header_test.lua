@@ -12,26 +12,33 @@ local W = { ITEMS = 40, BALLS = 40, ["KEY ITEMS"] = 72, ["TM/HM"] = 40 }
 -- with what it describes.  These are the engine's own numbers, from
 -- src/ui/ListMenu.lua's draw: cursor at x=8, label at x=16, right-aligned
 -- quantity ending at x=152, first row at y=24.
-local CURSOR_X, COUNT_RIGHT, FIRST_ROW_Y = 8, 152, 24
+-- The engine's own bag window, from src/ui/ListMenu.lua's drawItemBox.  These
+-- are the numbers the header has to agree with; if the engine moves its box,
+-- these assertions are what notices.
+local ITEM_BOX = { tx = 4, ty = 2, tw = 16, th = 11 }
+local ITEM_CURSOR_X = 40
 
--- The box is inset one tile from each screen edge so its OUTER edges land on
--- the list's own extent instead of overhanging it.  A full-width box put its
--- left border 8px further left than anything else on screen.
 local bx, by, bw, bh = H.BOX[1], H.BOX[2], H.BOX[3], H.BOX[4]
-T.eq(by, 0, "the box starts at the top")
-T.eq(bx * 8, CURSOR_X, "its left border fills the list's cursor column")
-T.eq((bx + bw) * 8, COUNT_RIGHT,
-  "and its right border ends where the quantity column right-aligns")
-T.eq((by + bh) * 8, FIRST_ROW_Y, "and it ends exactly where the first row begins")
+T.eq(by, 0, "the header sits at the top of the screen")
+T.eq(bx, ITEM_BOX.tx, "its left border shares the item box's column")
+T.eq(bw, ITEM_BOX.tw, "and it is exactly as wide as the item box")
+
+-- Its bottom border row IS the item box's top border row: one shared divider
+-- rather than two edges a tile apart.  The strip above the item box is only
+-- two tiles and a bordered box needs three, so this is what makes it fit.
+T.eq(by + bh, ITEM_BOX.ty + 1,
+  "the header's bottom border falls on the item box's top border row")
 
 -- Interior is one tile in from each border.
 local IN_L, IN_R = (bx + 1) * 8, (bx + bw - 1) * 8
-T.eq(IN_L, 16, "interior starts at 16")
-T.eq(IN_R, 144, "interior ends at 144")
+T.eq(IN_L, 40, "interior starts at 40")
+T.eq(IN_R, 152, "interior ends at 152")
 T.eq(H.MID_X, (IN_L + IN_R) / 2, "names centre on the interior's midpoint")
 
 -- Names centre; the arrows do not move.
 T.eq(H.LEFT_X, IN_L, "the left arrow sits at the interior's left edge")
+T.eq(H.LEFT_X, ITEM_CURSOR_X,
+  "which is also the list's cursor column, so the arrow sits over the cursor")
 T.eq(H.RIGHT_X + 3, IN_R, "the right arrow's right edge is the interior's")
 
 -- Every name must clear both arrows, whatever its width.
@@ -39,8 +46,8 @@ for name, width in pairs(W) do
   T.check(H.nameX(width) >= H.LEFT_X + 3, name .. " clears the left arrow")
   T.check(H.nameX(width) + width <= H.RIGHT_X, name .. " clears the right arrow")
 end
-T.eq(H.nameX(W["KEY ITEMS"]), 44, "the longest name centres at 44")
-T.eq(H.nameX(W.ITEMS), 60, "a short name centres on the same midpoint")
+T.eq(H.nameX(W["KEY ITEMS"]), 60, "the longest name centres at 60")
+T.eq(H.nameX(W.ITEMS), 76, "a short name centres on the same midpoint")
 
 -- The interior row is one tile, and the text and arrows must both sit inside
 -- it rather than on a border.
