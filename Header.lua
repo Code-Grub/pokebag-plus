@@ -19,20 +19,27 @@ local Header = {}
 -- and one interior row.  It occupies only the space ListMenu's own title
 -- already used, so no list row is lost -- the first row still starts at y=24,
 -- immediately under the bottom border.
-Header.BOX = { 0, 0, 20, 3 }   -- tile coords for Font.drawBox
+--
+-- Inset one tile from each screen edge, so the box's OUTER edges land on the
+-- list's own extent rather than overhanging it: the left border fills the
+-- cursor column (x=8), the right border the last quantity tile (ending at
+-- x=152).  A full-width box is the engine's idiom for the bottom text box,
+-- but here it stuck out 8px further left than anything else on screen.
+Header.BOX = { 1, 0, 18, 3 }   -- tile coords for Font.drawBox: x 8..152
 
--- Every element sits at a fixed x, and each one is a column the list below
--- already uses, so the header lines up with what it describes:
-Header.LEFT_X  = 8    -- the cursor column: the arrow sits over the cursor
-Header.NAME_X  = 16   -- the label column: the name sits over the item names
-Header.RIGHT_X = 149  -- 3 wide, so its right edge is 152 -- where the
-                      -- quantity column ends and right-aligns
+-- Interior runs x=16..144, so the name centres on 80.  The arrows are fixed
+-- and the name moves: anchoring an arrow to the name's own width would swing
+-- it 32px between TM/HM and KEY ITEMS, which reads as the interface twitching
+-- rather than as a page turning.
+Header.LEFT_X  = 16   -- left arrow at the interior's left edge
+Header.RIGHT_X = 141  -- 3 wide, so its right edge is the interior's, 144
+Header.MID_X   = 80   -- interior centre; names centre here
 Header.TEXT_Y  = 8    -- the box's interior row
 Header.ARROW_Y = 10   -- the 5px arrow centred in that 8px row
 
--- Fixed columns rather than centring.  Anchoring anything to the name's own
--- width would swing it 32px between TM/HM and KEY ITEMS, which reads as the
--- interface twitching rather than as a page turning.
+function Header.nameX(width)
+  return math.floor(Header.MID_X - width / 2)
+end
 
 function Header.leftArrow(x, y)
   love.graphics.rectangle("fill", x + 2, y,     1, 5)
@@ -55,7 +62,7 @@ function Header.draw(Font, label)
   Font.drawBox(Header.BOX[1], Header.BOX[2], Header.BOX[3], Header.BOX[4])
   Header.leftArrow(Header.LEFT_X, Header.ARROW_Y)
   Header.rightArrow(Header.RIGHT_X, Header.ARROW_Y)
-  Font.draw(label, Header.NAME_X, Header.TEXT_Y)
+  Font.draw(label, Header.nameX(Font.width(label)), Header.TEXT_Y)
   love.graphics.setColor(1, 1, 1, 1)
 end
 
