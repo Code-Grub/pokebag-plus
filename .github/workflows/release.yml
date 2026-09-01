@@ -145,6 +145,31 @@ jobs:
           rm -rf "$staging/.github" "$staging/.gitattributes" \
                  "$staging/.gitignore" "$staging/.luarc.json"
 
+          # Honour .modkitignore.  git archive carries the whole tree, and the
+          # scaffolded workflow strips only the dotfiles above -- so without
+          # this the release ships the test suites, the dev tooling, internal
+          # design docs and the rendered screenshots, none of which belong in
+          # a player's archive.  The screenshots matter most:
+          # CONTRIBUTING-mods.md is explicit that a distributed mod carries no
+          # ROM-derived bytes, "not even in its preview images".
+          #
+          # modkit matches these by exact relative path, not by prefix
+          # (tools/modkit.py mod_files), so this mirrors it: one path per
+          # line, blanks and comments skipped.
+          if [ -f "$staging/.modkitignore" ]; then
+            # tr strips the CR: this repo is authored on Windows with
+            # autocrlf, so git archive emits CRLF here.  Leave it and every
+            # path gains a trailing byte, matches nothing, and the filter
+            # silently no-ops -- which is how v0.1.0 shipped its tests and
+            # screenshots despite the ignore file listing them.
+            tr -d '\r' < "$staging/.modkitignore" | while IFS= read -r rel; do
+              case "$rel" in ''|'#'*) continue ;; esac
+              rm -rf "$staging/$rel"
+            done
+            rm -f "$staging/.modkitignore"
+          fi
+          find "$staging" -mindepth 1 -type d -empty -delete
+
           python3 - "$staging/manifest.json" "$VERSION" <<'PY'
           import json, sys
           path, version = sys.argv[1], sys.argv[2]
