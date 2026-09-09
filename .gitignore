@@ -1,2 +1,4 @@
-docs/
+docs/*
+# ...except the published style guide, which is meant to be read here
+!docs/changelog-style.md
 images/before/
