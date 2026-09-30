@@ -29,6 +29,11 @@ be turned off.
 </p>
 
 <p align="center">
+  <img src="images/screen_balls.png" width="480" alt="The BALLS pocket with the Great Ball highlighted and its icon in the preview window"/><br/>
+  <sub>BALLS, with the highlighted Great Ball in the preview. The window only appears with a Gen 3 import</sub>
+</p>
+
+<p align="center">
   <img src="images/screen_tmhm.png" width="480" alt="The TM/HM pocket: HMs first, then TMs, with the highlighted name scrolling and a disc icon in the preview window"/><br/>
   <sub>HMs first, then TMs by number. The highlighted name scrolls when it is wider than the list</sub>
 </p>
