@@ -18,12 +18,19 @@ Four Gen 2 pockets paged with Left and Right · acquisition order kept · the SE
 
 PokeBag+ splits the bag into four pockets -- ITEMS, BALLS, KEY ITEMS and
 TM/HM -- paged with Left and Right, in the style the Game Boy would have
-shipped. It keeps the vanilla 20 slot limit, keeps acquisition order, and
-keeps SELECT working, now confined to the pocket you are in.
+shipped. It keeps the vanilla 20 slot limit, keeps acquisition order in three
+of the four pockets, and keeps SELECT working, now confined to the pocket you
+are in. The TM/HM pocket is grouped and shows move names by default; both can
+be turned off.
 
 <p align="center">
   <img src="images/screen_items.png" width="480" alt="The ITEMS pocket: the pocket name centred between two paging arrows, in a window sharing its borders with the item list below"/><br/>
-  <sub>The header shares its left and right borders with the bag window, and its bottom border is that window's top edge</sub>
+  <sub>The header shares its left and right borders with the bag window, and its bottom border is that window's top edge. The window on the left is the item preview.</sub>
+</p>
+
+<p align="center">
+  <img src="images/screen_tmhm.png" width="480" alt="The TM/HM pocket: HMs first, then TMs, with the highlighted name scrolling and a disc icon in the preview window"/><br/>
+  <sub>HMs first, then TMs by number. The highlighted name scrolls when it is wider than the list</sub>
 </p>
 
 <p align="center">
@@ -48,7 +55,8 @@ cousin reads as mismatched, so both sides are drawn the same way.
   pocket you used last.
 - SELECT still picks an item up and places it, the way vanilla's bag does.
   It now works inside the pocket you are in.
-- Acquisition order is untouched. Nothing sorts itself.
+- Acquisition order is untouched in ITEMS, BALLS and KEY ITEMS. The TM/HM
+  pocket is grouped by default (see `GROUP TM/HM`).
 - The battle bag is the same four pockets, so there is one thing to learn
   rather than two.
 
