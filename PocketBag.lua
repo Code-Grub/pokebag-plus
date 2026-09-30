@@ -34,13 +34,34 @@ function PocketBag:label()
   return self.env.Pockets.LABEL[self:key()]
 end
 
+-- True while the TM/HM pocket is sorted into HMs then TMs by number.  Its
+-- order is then derived rather than the player's, so nothing can be moved.
+function PocketBag:grouped()
+  return self:key() == "TMHM"
+    and self.env.groupMachines ~= nil and self.env.groupMachines() == true
+end
+
+-- HMs before TMs, each by number.  table.sort is not stable, but the keys
+-- are unique (a number is one machine of one kind), so it does not matter.
+local function byMachine(items)
+  return function(a, b)
+    local ma = items[a.id] and items[a.id].machine
+    local mb = items[b.id] and items[b.id].machine
+    if not (ma and mb) then return a.global < b.global end
+    if ma.kind ~= mb.kind then return ma.kind == "HM" end
+    return ma.number < mb.number
+  end
+end
+
 -- Rebuild list.items for the current pocket, and remember where each row
 -- sits in the global save.bagOrder so a swap can be remapped.
 function PocketBag:refresh()
   local save = self.env.save
   local part = self.env.Pockets.partition(save.bagOrder, self.env.items, self.env)
   local rows, globals = {}, {}
-  for i, entry in ipairs(part[self:key()]) do
+  local entries = part[self:key()]
+  if self:grouped() then table.sort(entries, byMachine(self.env.items)) end
+  for i, entry in ipairs(entries) do
     local def = self.env.items and self.env.items[entry.id]
     rows[i] = {
       value = entry.id,
@@ -123,6 +144,7 @@ end
 -- stale and duplicate ids -- before PocketBag ever reads it raw.  The mod
 -- depends on that construction order rather than normalizing it itself.
 function PocketBag:swap(localA, localB)
+  if self:grouped() then return false end
   local ga, gb = self.globalOf[localA], self.globalOf[localB]
   if not (ga and gb) then return false end
   local order = self.env.save.bagOrder

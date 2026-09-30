@@ -86,6 +86,10 @@ return function(mod)
         isBall = ItemEffects.isBall,
         -- "TM01 MEGA PUNCH", or nil for anything else and when the option
         -- is off.  Read per refresh, so the option needs no change event.
+        -- Read per refresh, like machineLabel.
+        groupMachines = function()
+          return mod.options:get("tmhm_group") ~= "off"
+        end,
         machineLabel = function(id)
           if mod.options:get("tmhm_names") ~= "on" then return nil end
           local def = game.data.items[id]
@@ -160,6 +164,8 @@ return function(mod)
       -- which a filtered pocket breaks.  Replace it outright.
       list.onSelectKey = function(item, l)
         if not item then return end
+        -- a grouped TM/HM pocket is sorted for you: nothing to pick up
+        if bag:grouped() then return end
         if not l.swapIndex then
           l.swapIndex = l.index
           return

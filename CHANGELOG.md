@@ -3,6 +3,22 @@
 Written in the style described in [docs/changelog-style.md](docs/changelog-style.md):
 what changed for the player, with the reasoning left in the commit history.
 
+## [0.2.1] - 2026-09-30
+
+### Changed
+
+- `TM/HM NAMES` is now on by default, so the TM/HM pocket shows the move beside
+  each machine without changing a setting. Turn it off to get vanilla's bare
+  `TM01`.
+
+- A `GROUP TM/HM` option, on by default. The TM/HM pocket lists HMs first, then
+  TMs, each in number order. SELECT does not move items in that pocket while it
+  is on; turn the option off to get acquisition order and the swap back.
+
+### Fixed
+
+- The release archive no longer includes a test file.
+
 ## [0.2.0] - 2026-09-30
 
 ### Added

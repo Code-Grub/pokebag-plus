@@ -15,14 +15,25 @@ return {
     default = 20,
     choices = { { "20", 20 }, { "999", 999 } },
   },
-  -- Off is vanilla: a machine shows as "TM01" and you learn the move from
-  -- the booted-up text.  On shows "TM01 MEGA PUNCH", scrolling when the
-  -- highlighted label is wider than the list's name column.
+  -- On shows "TM01 MEGA PUNCH", scrolling when the highlighted label is
+  -- wider than the list's name column.  Off is vanilla: a machine shows as
+  -- "TM01" and you learn the move from the booted-up text.
   {
     key = "tmhm_names",
     type = "choice",
     label = "TM/HM NAMES",
-    default = "off",
-    choices = { { "OFF", "off" }, { "ON", "on" } },
+    default = "on",
+    choices = { { "ON", "on" }, { "OFF", "off" } },
+  },
+  -- On sorts the TM/HM pocket into HMs then TMs, each by number, instead of
+  -- acquisition order.  Off is vanilla order.  While on, SELECT does not pick
+  -- anything up in that pocket, because the order is derived; every other
+  -- pocket keeps it.
+  {
+    key = "tmhm_group",
+    type = "choice",
+    label = "GROUP TM/HM",
+    default = "on",
+    choices = { { "ON", "on" }, { "OFF", "off" } },
   },
 }

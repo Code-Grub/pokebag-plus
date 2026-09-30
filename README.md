@@ -64,10 +64,16 @@ the flat vanilla bag exactly as it was.
 Setting it to 999 lifts the cap on how many distinct items the bag holds.
 See Limits below before raising it: past 20 it makes `.sav` export lossy.
 
-`TM/HM NAMES` is off by default, which shows a machine as `TM01` like vanilla.
-On, the TM/HM pocket shows `TM01 MEGA PUNCH`. Names wider than the list are
-cut with a trailing dot, and the highlighted row scrolls so you can read it
-in full.
+`TM/HM NAMES` is on by default: the TM/HM pocket shows `TM01 MEGA PUNCH`.
+Names wider than the list are cut with a trailing dot, and the highlighted
+row scrolls so you can read it in full. Off shows a machine as `TM01`, like
+vanilla.
+
+`GROUP TM/HM` is also on by default: the TM/HM pocket lists HMs first, then
+TMs, each in number order, instead of the order you found them. Because that
+order is sorted for you, SELECT does not pick an item up in that pocket while
+it is on; the other pockets keep it. Off restores acquisition order and the
+swap.
 
 ## Limits
 

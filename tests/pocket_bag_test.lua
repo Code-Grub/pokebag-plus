@@ -198,4 +198,58 @@ do
   PocketBag.lastPocket = 1
 end
 
+-- Grouping: HMs first, then TMs, each by number.  The pocket no longer follows
+-- acquisition order, so a swap there would be undone by the next refresh:
+-- swap refuses, and only while grouping is on.
+do
+  local function machine(kind, number, id)
+    return { id = id, name = kind .. ("%02d"):format(number),
+             keyItem = kind == "HM" or nil,
+             machine = { kind = kind, number = number, move = id } }
+  end
+  local items = {
+    POTION = { id = "POTION", name = "POTION" },
+    TM_50 = machine("TM", 50, "TM_50"), TM_03 = machine("TM", 3, "TM_03"),
+    HM_04 = machine("HM", 4, "HM_04"),  HM_01 = machine("HM", 1, "HM_01"),
+    TM_24 = machine("TM", 24, "TM_24"),
+  }
+  local function build(group)
+    PocketBag.lastPocket = 4
+    local save = { bagOrder = { "POTION", "TM_50", "HM_04", "TM_03", "TM_24", "HM_01" },
+                   inventory = { POTION = 1, TM_50 = 1, HM_04 = 1, TM_03 = 1, TM_24 = 1, HM_01 = 1 } }
+    local lst = { items = {}, index = 1, scroll = 0, title = "" }
+    local b = PocketBag.new(lst, {
+      save = save, items = items, Pockets = Pockets,
+      isBall = function() return false end,
+      groupMachines = function() return group end,
+    })
+    return b, lst, save
+  end
+  local function values(lst)
+    local out = {}
+    for i, row in ipairs(lst.items) do out[i] = row.value end
+    return table.concat(out, ",")
+  end
+
+  local b, lst, save = build(true)
+  T.eq(values(lst), "HM_01,HM_04,TM_03,TM_24,TM_50", "HMs first, then TMs, each by number")
+  -- globalOf still names each row's slot in the save's bagOrder
+  for i, row in ipairs(lst.items) do
+    T.eq(save.bagOrder[b.globalOf[i]], row.value, "row " .. i .. " maps back to its bagOrder slot")
+  end
+  local before = table.concat(save.bagOrder, ",")
+  T.eq(b:swap(1, 2), false, "swap is refused in a grouped pocket")
+  T.eq(table.concat(save.bagOrder, ","), before, "and the bag order is untouched")
+  T.eq(b:grouped(), true, "the pocket reports it is grouped")
+  b:page(1)   -- TM/HM wraps forward to ITEMS
+  T.eq(b:grouped(), false, "no other pocket is")
+  T.eq(values(lst), "POTION", "ITEMS is unaffected")
+
+  local u, ulst = build(false)
+  T.eq(values(ulst), "TM_50,HM_04,TM_03,TM_24,HM_01", "grouping off keeps acquisition order")
+  T.eq(u:grouped(), false, "and is not grouped")
+  T.eq(u:swap(1, 2), true, "so swap still works")
+  PocketBag.lastPocket = 1
+end
+
 T.finish("pocket_bag")
