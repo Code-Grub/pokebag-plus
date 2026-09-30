@@ -4,7 +4,7 @@
 
 **A bag overhaul for the [Pokémon Gen 1 Recompilation Project](https://github.com/bryanthaboi/pokemon-gen1-recomp-project).**
 
-Four Gen 2 pockets paged with Left and Right · acquisition order kept · the SELECT swap still works
+Four Gen 2 pockets paged with Left and Right · TM and HM move names · an item preview window · the vanilla 20 slot limit and SELECT swap kept
 
 <p align="center">
   <a href="https://github.com/Code-Grub/pokebag-plus/releases/latest"><img src="https://img.shields.io/github/v/release/Code-Grub/pokebag-plus?style=flat&label=release&color=306230" alt="Latest release"/></a>
@@ -34,8 +34,8 @@ be turned off.
 </p>
 
 <p align="center">
-  <img src="images/screen_key.png" width="480" alt="The KEY ITEMS pocket, the longest of the four names, still clear of both arrows"/><br/>
-  <sub>KEY ITEMS, the longest of the four names, still clear of both arrows</sub>
+  <img src="images/screen_key.png" width="480" alt="The KEY ITEMS pocket, the longest of the four names, still clear of both arrows, with the Old Rod in the preview window"/><br/>
+  <sub>KEY ITEMS, the longest of the four names, still clear of both arrows. The preview follows the highlighted item</sub>
 </p>
 
 The arrows are drawn by hand rather than taken from the font. The charmap
@@ -45,8 +45,14 @@ cousin reads as mismatched, so both sides are drawn the same way.
 ## Try it
 
     cmd /c mklink /J game\mods\pokebag_plus <path to this repo>
-    cd game && luajit mods/pokebag_plus/tests/pokebag_plus_test.lua
-    cd game && python tools/modkit.py validate mods/pokebag_plus --base imported
+    cd game
+    luajit mods/pokebag_plus/tests/pokebag_plus_test.lua
+    luajit mods/pokebag_plus/tests/pocket_bag_test.lua
+    luajit mods/pokebag_plus/tests/pockets_test.lua
+    luajit mods/pokebag_plus/tests/header_test.lua
+    luajit mods/pokebag_plus/tests/marquee_test.lua
+    luajit mods/pokebag_plus/tests/preview_test.lua
+    python tools/modkit.py validate mods/pokebag_plus --base imported
 
 ## What changes
 
@@ -57,6 +63,10 @@ cousin reads as mismatched, so both sides are drawn the same way.
   It now works inside the pocket you are in.
 - Acquisition order is untouched in ITEMS, BALLS and KEY ITEMS. The TM/HM
   pocket is grouped by default (see `GROUP TM/HM`).
+- The TM/HM pocket shows each machine's move (`TM01 MEGA PUNCH`), lists HMs
+  before TMs, and scrolls a name that is too wide for the list.
+- A small window beside the list previews the highlighted item's icon, when
+  you have a Gen 3 game imported.
 - The battle bag is the same four pockets, so there is one thing to learn
   rather than two.
 
@@ -78,12 +88,14 @@ row scrolls so you can read it in full. Off shows a machine as `TM01`, like
 vanilla.
 
 `ITEM PREVIEW` is on by default: the highlighted item's icon shows in a small
-window attached to the left of the list. The icons are Gen 3's, read from
-your own import of FireRed, LeafGreen or Emerald, so **the window only
-appears once you have imported one of them**; nothing is bundled with the
-mod. Ruby and Sapphire are not importable by the engine yet. Without that import, or
-with the option off, the bag looks exactly as it did before. TMs show a disc
-matching their move's type.
+window attached to the left of the list. TMs show a disc matching their move's
+type, and an item with no icon of its own shows Gen 3's question mark.
+
+The icons are Gen 3's and are read from your own import, so **the window only
+appears once you have imported FireRed, LeafGreen or Emerald** in the game's
+launcher (IMPORTERS tab). Nothing is bundled with the mod. Without an import,
+or with the option off, the bag looks exactly as it did before. Ruby and
+Sapphire are not importable by the engine yet.
 
 `GROUP TM/HM` is also on by default: the TM/HM pocket lists HMs first, then
 TMs, each in number order, instead of the order you found them. Because that
@@ -101,6 +113,10 @@ swap.
   how many distinct items fit, not how many of each.
 - 999 is effectively unlimited rather than literal: vanilla has 144
   non-badge items, so that is the real ceiling until a content mod adds more.
+- The preview draws Gen 3 art, not Gen 1 art, and always at its original size
+  and colour. It is an addition beside the list, not part of the Gen 1 look.
+- With `GROUP TM/HM` on, SELECT cannot reorder the TM/HM pocket, because its
+  order is sorted for you. Turn the option off to move machines by hand.
 
 ## Licence
 
