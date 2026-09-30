@@ -26,9 +26,9 @@ return {
     choices = { { "ON", "on" }, { "OFF", "off" } },
   },
   -- On shows the highlighted item's icon in a small window beside the list.
-  -- The icons are FireRed's, read from the player's own import of that ROM;
-  -- with no import there is nothing to show and no window is drawn, whatever
-  -- this is set to.
+  -- The icons are Gen 3's, read from the player's own import of FireRed,
+  -- LeafGreen or Emerald; with none of them there is nothing to show and no
+  -- window is drawn, whatever this is set to.
   {
     key = "item_preview",
     type = "choice",

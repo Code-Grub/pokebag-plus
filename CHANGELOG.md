@@ -3,13 +3,20 @@
 Written in the style described in [docs/changelog-style.md](docs/changelog-style.md):
 what changed for the player, with the reasoning left in the commit history.
 
+## [0.3.1] - 2026-09-30
+
+### Fixed
+
+- The item preview now also appears when only LeafGreen or Emerald has been
+  imported. It was looking for FireRed alone.
+
 ## [0.3.0] - 2026-09-30
 
 ### Added
 
 - An `ITEM PREVIEW` option, on by default. The highlighted item's icon shows in
   a small window attached to the left of the bag. The icons come from your own
-  import of FireRed; with no import the window never appears, and the option
+  import of FireRed, LeafGreen or Emerald; with none the window never appears, and the option
   turns it off either way.
 
 ## [0.2.1] - 2026-09-30

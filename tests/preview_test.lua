@@ -71,7 +71,7 @@ end
 local none = fixture({})
 T.eq(none:available(), false, "no cache, no panel")
 T.eq(none:available(), false, "and the answer is remembered")
-T.eq(#reads, 1, "so the disk is asked once")
+T.eq(#reads, #P.ROOTS + 1, "so the disk is asked once per source, and never again")
 T.eq(none:image(4), nil, "nothing is loaded without a cache")
 T.eq(images, 0, "no image is built")
 
@@ -88,6 +88,83 @@ have:image(14)
 local misses = 0
 for _, r in ipairs(reads) do if r == P.path(14) then misses = misses + 1 end end
 T.eq(misses, 1, "and the miss is remembered too")
+
+-- LeafGreen has the same icons (byte for byte: all 376 compared) under its own
+-- cache folder, so a player who imported only that gets the panel too.
+T.eq(P.path(4, "leafgreen"), "leafgreen/data/generated/gba/items/bag/icons/4.rgba",
+  "LeafGreen's icons live under its own prefix")
+local lg = fixture({ [P.path(4, "leafgreen")] = true, [P.path(13, "leafgreen")] = true })
+T.eq(lg:available(), true, "a LeafGreen-only import turns the panel on")
+T.check(lg:image(13) ~= nil, "and its icons load from the leafgreen tree")
+local lgOnly = {}
+for _, r in ipairs(reads) do lgOnly[#lgOnly + 1] = r end
+T.eq(lgOnly[#lgOnly], P.path(13, "leafgreen"), "the icon is read from the tree that answered the probe")
+
+local both = fixture({ [P.path(4)] = true, [P.path(4, "leafgreen")] = true,
+                       [P.path(13)] = true, [P.path(13, "leafgreen")] = true })
+T.eq(both:available(), true, "with both imported the panel is on")
+both:image(13)
+T.eq(reads[#reads], P.path(13), "and FireRed's tree wins")
+
+-- Emerald keeps its icons as ONE strip, 24 wide and 24 * count tall, in
+-- emerald/.../rse/bag/icons.rgba.  Icon n is the n-th 24x24 slice.
+local SLICE = 24 * 24 * 4
+local function strip(count)
+  local parts = {}
+  for i = 0, count - 1 do parts[#parts + 1] = string.rep(string.char(i % 256), SLICE) end
+  return table.concat(parts)
+end
+local function emerald(count)
+  reads, images = {}, 0
+  local bytes = strip(count or 377)
+  local got = {}
+  local pv = P.new({
+    read = function(path)
+      reads[#reads + 1] = path
+      return path == P.STRIP and bytes or nil
+    end,
+    image = function(b) got[#got + 1] = b return { bytes = b } end,
+  })
+  return pv, got
+end
+
+local em, got = emerald()
+T.eq(P.STRIP, "emerald/data/generated/gba/rse/bag/icons.rgba", "Emerald's strip lives in its own rse tree")
+T.eq(em:available(), true, "an Emerald-only import turns the panel on")
+em:image(13)
+T.eq(#got[1], SLICE, "an icon is one 24x24 slice of the strip")
+T.eq(got[1]:byte(1), 13, "and it is slice 13, not slice 0")
+T.eq(got[1]:byte(SLICE), 13, "through to its last byte")
+em:image(100); em:image(100)
+T.eq(#got, 2, "each icon is built once")
+local strips = 0
+for _, r in ipairs(reads) do if r == P.STRIP then strips = strips + 1 end end
+T.eq(strips, 1, "and the strip itself is read once")
+
+-- Emerald's table carries FireRed's key items in the same slots (checked
+-- against a real Emerald import), so the same ids are read, 349 and up included.
+em:image(349); em:image(360)
+T.eq(got[#got - 1]:byte(1), 349 % 256, "a FRLG key item is read from its own slot in Emerald's strip")
+T.eq(got[#got]:byte(1), 360 % 256, "and so is the bicycle")
+T.eq(P.ICON.OAKS_PARCEL, 349, "OAKS PARCEL")
+T.eq(P.ICON.TOWN_MAP, 361, "TOWN MAP")
+
+local tiny = P.new({
+  read = function(path) return path == P.STRIP and string.rep("", SLICE) or nil end,
+  image = function() error("must not be called") end,
+})
+T.eq(tiny:available(), false, "a strip too short to hold the probe icon is not an import")
+
+-- FireRed wins over Emerald when both exist.
+local mixed = P.new({
+  read = function(path)
+    if path == P.path(4) then return string.rep("", SLICE) end
+    if path == P.STRIP then return strip(377) end
+  end,
+  image = function(b) return { bytes = b } end,
+})
+T.eq(mixed:available(), true, "with both the panel is on")
+T.eq(mixed.root, "firered", "and FireRed's tree is the one used")
 
 -- A truncated file is not an icon.
 local short = P.new({

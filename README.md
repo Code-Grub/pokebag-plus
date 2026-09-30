@@ -78,9 +78,10 @@ row scrolls so you can read it in full. Off shows a machine as `TM01`, like
 vanilla.
 
 `ITEM PREVIEW` is on by default: the highlighted item's icon shows in a small
-window attached to the left of the list. The icons are FireRed's, read from
-your own import of that ROM, so **the window only appears once you have
-imported FireRed**; nothing is bundled with the mod. Without that import, or
+window attached to the left of the list. The icons are Gen 3's, read from
+your own import of FireRed, LeafGreen or Emerald, so **the window only
+appears once you have imported one of them**; nothing is bundled with the
+mod. Ruby and Sapphire are not importable by the engine yet. Without that import, or
 with the option off, the bag looks exactly as it did before. TMs show a disc
 matching their move's type.
 
