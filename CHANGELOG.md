@@ -3,6 +3,13 @@
 Written in the style described in [docs/changelog-style.md](docs/changelog-style.md):
 what changed for the player, with the reasoning left in the commit history.
 
+## [0.2.2] - 2026-09-30
+
+### Fixed
+
+- The TM/HM name scroll no longer speeds up with OVERWORLD SPEED. It moves at
+  the same pace at every game speed.
+
 ## [0.2.1] - 2026-09-30
 
 ### Changed
