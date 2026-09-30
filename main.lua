@@ -67,6 +67,8 @@ return function(mod)
   local Font = require("src.render.Font")
   local Sound = require("src.core.Sound")
   local Strings = require("src.core.Strings")
+  local Marquee = sibling("Marquee.lua")
+  if not Marquee then return end
 
   mod.content.screens:register("BagMenu", {
     new = function(game, opts)
@@ -82,7 +84,21 @@ return function(mod)
         items = game.data.items,
         Pockets = Pockets,
         isBall = ItemEffects.isBall,
+        -- "TM01 MEGA PUNCH", or nil for anything else and when the option
+        -- is off.  Read per refresh, so the option needs no change event.
+        machineLabel = function(id)
+          if mod.options:get("tmhm_names") ~= "on" then return nil end
+          local def = game.data.items[id]
+          if not (def and def.machine) then return nil end
+          local move = game.data.moves[def.machine.move]
+          return def.name .. " " .. (move and move.name or def.machine.move)
+        end,
       })
+
+      -- Seconds since the highlight last moved, which is what the marquee
+      -- runs on.  Paging resets it too: the cursor can sit on the same index
+      -- in the next pocket.
+      local clock, seenIndex = 0, nil
 
       -- Left and Right are free: ListMenu ignores them unless pageJump is
       -- set (src/ui/ListMenu.lua:158,161) and BagMenu never sets it.
@@ -90,8 +106,10 @@ return function(mod)
       function list:update(dt)
         bag:sync()
         local input = self.game.input
-        if input:wasPressed("left") then bag:page(-1) return end
-        if input:wasPressed("right") then bag:page(1) return end
+        if input:wasPressed("left") then clock = 0 bag:page(-1) return end
+        if input:wasPressed("right") then clock = 0 bag:page(1) return end
+        if self.index ~= seenIndex then seenIndex, clock = self.index, 0 end
+        clock = clock + dt
         baseUpdate(self, dt)
       end
 
@@ -116,7 +134,24 @@ return function(mod)
         bag:sync()
         local title = self.title
         self.title = ""
+
+        -- Machine rows swap their label for the fitted long form across the
+        -- base draw and get it back after, like the title above.  The
+        -- highlighted row scrolls; the rest rest on their front.
+        local swapped = {}
+        for row = 1, self.rows or 0 do
+          local i = self.scroll + row
+          local item = self.items[i]
+          if item and item.full then
+            swapped[#swapped + 1] = { item, item.label }
+            item.label = i == self.index
+              and Marquee.window(item.full, Marquee.COLS, clock)
+              or Marquee.fit(item.full, Marquee.COLS)
+          end
+        end
         baseDraw(self)
+        for _, s in ipairs(swapped) do s[1].label = s[2] end
+
         self.title = title
         Header.draw(Font, Strings(bag:label()))
       end

@@ -64,6 +64,11 @@ the flat vanilla bag exactly as it was.
 Setting it to 999 lifts the cap on how many distinct items the bag holds.
 See Limits below before raising it: past 20 it makes `.sav` export lossy.
 
+`TM/HM NAMES` is off by default, which shows a machine as `TM01` like vanilla.
+On, the TM/HM pocket shows `TM01 MEGA PUNCH`. Names wider than the list are
+cut with a trailing dot, and the highlighted row scrolls so you can read it
+in full.
+
 ## Limits
 
 - Raising the slot limit above 20 makes `.sav` export lossy. The Game Boy

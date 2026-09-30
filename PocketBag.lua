@@ -46,6 +46,9 @@ function PocketBag:refresh()
       value = entry.id,
       label = def and def.name or entry.id,
       right = "x" .. tostring(save.inventory[entry.id]),
+      -- The long form, for a caller that wants to fit or scroll it.  label
+      -- stays the engine's own so nothing else reading the row changes.
+      full = self.env.machineLabel and self.env.machineLabel(entry.id) or nil,
     }
     globals[i] = entry.global
   end

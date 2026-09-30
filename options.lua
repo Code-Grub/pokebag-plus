@@ -15,4 +15,14 @@ return {
     default = 20,
     choices = { { "20", 20 }, { "999", 999 } },
   },
+  -- Off is vanilla: a machine shows as "TM01" and you learn the move from
+  -- the booted-up text.  On shows "TM01 MEGA PUNCH", scrolling when the
+  -- highlighted label is wider than the list's name column.
+  {
+    key = "tmhm_names",
+    type = "choice",
+    label = "TM/HM NAMES",
+    default = "off",
+    choices = { { "OFF", "off" }, { "ON", "on" } },
+  },
 }

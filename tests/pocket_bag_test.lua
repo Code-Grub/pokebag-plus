@@ -162,4 +162,40 @@ T.eq(save.bagOrder[3], "ULTRA_BALL", "the two balls exchanged")
 T.eq(save.bagOrder[4], "GREAT_BALL", "both ends of the exchange")
 T.eq(save.bagOrder[5], "BICYCLE", "BICYCLE did not move")
 
+-- The long label for machines.  machineLabel is the caller's; PocketBag only
+-- carries its answer on the row, leaving label and the order alone.
+do
+  local items = {
+    POTION = { id = "POTION", name = "POTION" },
+    TM_01  = { id = "TM_01", name = "TM01", machine = { kind = "TM", number = 1, move = "MEGA_PUNCH" } },
+    HM_05  = { id = "HM_05", name = "HM05", keyItem = true, machine = { kind = "HM", number = 5, move = "FLASH" } },
+  }
+  local names = { MEGA_PUNCH = "MEGA PUNCH", FLASH = "FLASH" }
+  PocketBag.lastPocket = 4
+  local save = { bagOrder = { "POTION", "TM_01", "HM_05" },
+                 inventory = { POTION = 1, TM_01 = 1, HM_05 = 1 } }
+  local lst = { items = {}, index = 1, scroll = 0, title = "" }
+  local b = PocketBag.new(lst, {
+    save = save, items = items, Pockets = Pockets,
+    isBall = function() return false end,
+    machineLabel = function(id)
+      local def = items[id]
+      if not def.machine then return nil end
+      return def.name .. " " .. names[def.machine.move]
+    end,
+  })
+  T.eq(b:key(), "TMHM", "fixture opens on TM/HM")
+  T.eq(#lst.items, 2, "both machines are in the pocket")
+  T.eq(lst.items[1].full, "TM01 MEGA PUNCH", "a TM carries its long label")
+  T.eq(lst.items[2].full, "HM05 FLASH", "an HM does too")
+  T.eq(lst.items[1].label, "TM01", "the engine's label is left alone")
+  T.eq(b.globalOf[1], 2, "and the pocket still maps back to the bag order")
+  b:page(-1)
+  b:page(-1)
+  b:page(-1)
+  T.eq(b:key(), "ITEMS", "paged back to ITEMS")
+  T.eq(lst.items[1].full, nil, "a non-machine row has no long label")
+  PocketBag.lastPocket = 1
+end
+
 T.finish("pocket_bag")

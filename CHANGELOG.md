@@ -3,6 +3,14 @@
 Written in the style described in [docs/changelog-style.md](docs/changelog-style.md):
 what changed for the player, with the reasoning left in the commit history.
 
+## [0.2.0] - 2026-09-30
+
+### Added
+
+- A `TM/HM NAMES` option, off by default. On, the TM/HM pocket shows the move
+  beside each machine, as `TM01 MEGA PUNCH`. Long names are cut to fit, and
+  the highlighted row scrolls to show the rest.
+
 ## [0.1.0] - 2026-08-31
 
 ### Added
