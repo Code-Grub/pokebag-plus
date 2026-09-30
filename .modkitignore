@@ -3,6 +3,7 @@
 tests/header_test.lua
 tests/marquee_test.lua
 tests/pocket_bag_test.lua
+tests/preview_test.lua
 tests/pockets_test.lua
 tests/pokebag_plus_test.lua
 tools/screenshots.lua

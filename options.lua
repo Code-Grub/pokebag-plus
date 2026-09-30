@@ -25,6 +25,17 @@ return {
     default = "on",
     choices = { { "ON", "on" }, { "OFF", "off" } },
   },
+  -- On shows the highlighted item's icon in a small window beside the list.
+  -- The icons are FireRed's, read from the player's own import of that ROM;
+  -- with no import there is nothing to show and no window is drawn, whatever
+  -- this is set to.
+  {
+    key = "item_preview",
+    type = "choice",
+    label = "ITEM PREVIEW",
+    default = "on",
+    choices = { { "ON", "on" }, { "OFF", "off" } },
+  },
   -- On sorts the TM/HM pocket into HMs then TMs, each by number, instead of
   -- acquisition order.  Off is vanilla order.  While on, SELECT does not pick
   -- anything up in that pocket, because the order is derived; every other

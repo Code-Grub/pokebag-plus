@@ -68,7 +68,10 @@ return function(mod)
   local Sound = require("src.core.Sound")
   local Strings = require("src.core.Strings")
   local Marquee = sibling("Marquee.lua")
-  if not Marquee then return end
+  local Preview = sibling("Preview.lua")
+  if not (Marquee and Preview) then return end
+  local CacheFs = require("src.import.CacheFs")
+  local PaletteFX = require("src.render.PaletteFX")
 
   mod.content.screens:register("BagMenu", {
     new = function(game, opts)
@@ -96,6 +99,20 @@ return function(mod)
           if not (def and def.machine) then return nil end
           local move = game.data.moves[def.machine.move]
           return def.name .. " " .. (move and move.name or def.machine.move)
+        end,
+      })
+
+      -- The item preview.  readAt takes an exact path, so FireRed's tree is
+      -- reachable from a Gen 1 session (CacheFs.read would prepend Red's).
+      local preview = Preview.new({
+        read = function(path) return CacheFs.readAt(path) end,
+        image = function(bytes)
+          local ok, data = pcall(love.image.newImageData,
+            Preview.SIZE, Preview.SIZE, "rgba8", bytes)
+          if not ok then return nil end
+          local img = love.graphics.newImage(data)
+          img:setFilter("nearest", "nearest")
+          return img
         end,
       })
 
@@ -153,8 +170,29 @@ return function(mod)
               or Marquee.fit(item.full, Marquee.COLS)
           end
         end
+        -- The preview box goes down BEFORE the window: its right edge is the
+        -- window's left border, which the window then paints over.
+        local previewOn = mod.options:get("item_preview") ~= "off"
+          and preview:available()
+        if previewOn then
+          love.graphics.setColor(0, 0, 0, 1)
+          Font.drawBox(Preview.BOX[1], Preview.BOX[2], Preview.BOX[3], Preview.BOX[4])
+        end
         baseDraw(self)
         for _, s in ipairs(swapped) do s[1].label = s[2] end
+        if previewOn then
+          local item = self.items[self.index]
+          local def = item and item.value and game.data.items[item.value]
+          local img = preview:image(Preview.iconId(def, game.data.moves) or Preview.UNKNOWN)
+          if img then
+            love.graphics.setColor(1, 1, 1, 1)
+            love.graphics.draw(img, Preview.ICON_X, Preview.ICON_Y)
+            -- full colour: without this the palette pass flattens it to four
+            -- shades (PaletteFX.markTrueColor re-blits the rect unshaded)
+            PaletteFX.markTrueColor(Preview.ICON_X, Preview.ICON_Y,
+              Preview.SIZE, Preview.SIZE)
+          end
+        end
 
         self.title = title
         Header.draw(Font, Strings(bag:label()))

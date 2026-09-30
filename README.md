@@ -69,6 +69,13 @@ Names wider than the list are cut with a trailing dot, and the highlighted
 row scrolls so you can read it in full. Off shows a machine as `TM01`, like
 vanilla.
 
+`ITEM PREVIEW` is on by default: the highlighted item's icon shows in a small
+window attached to the left of the list. The icons are FireRed's, read from
+your own import of that ROM, so **the window only appears once you have
+imported FireRed**; nothing is bundled with the mod. Without that import, or
+with the option off, the bag looks exactly as it did before. TMs show a disc
+matching their move's type.
+
 `GROUP TM/HM` is also on by default: the TM/HM pocket lists HMs first, then
 TMs, each in number order, instead of the order you found them. Because that
 order is sorted for you, SELECT does not pick an item up in that pocket while
