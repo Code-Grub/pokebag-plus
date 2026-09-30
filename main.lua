@@ -99,19 +99,10 @@ return function(mod)
         end,
       })
 
-      -- When the highlight last moved, which is what the marquee runs on.
-      -- Paging resets it too: the cursor can sit on the same index in the
-      -- next pocket.
-      --
-      -- Real time, not list:update's dt.  That dt is the fixed logic step,
-      -- which the engine multiplies by the current GAME SPEED, so a marquee
-      -- on it speeds up with OVERWORLD SPEED -- the bag is opened over the
-      -- overworld and inherits its category.  The scroll is presentational:
-      -- it should read at one pace whatever the game speed is.
-      local function now()
-        return love and love.timer and love.timer.getTime() or 0
-      end
-      local since, seenIndex = now(), nil
+      -- Seconds since the highlight last moved, which is what the marquee
+      -- runs on.  Paging resets it too: the cursor can sit on the same index
+      -- in the next pocket.
+      local clock, seenIndex = 0, nil
 
       -- Left and Right are free: ListMenu ignores them unless pageJump is
       -- set (src/ui/ListMenu.lua:158,161) and BagMenu never sets it.
@@ -119,8 +110,10 @@ return function(mod)
       function list:update(dt)
         bag:sync()
         local input = self.game.input
-        if input:wasPressed("left") then since = now() bag:page(-1) return end
-        if input:wasPressed("right") then since = now() bag:page(1) return end
+        if input:wasPressed("left") then clock = 0 bag:page(-1) return end
+        if input:wasPressed("right") then clock = 0 bag:page(1) return end
+        if self.index ~= seenIndex then seenIndex, clock = self.index, 0 end
+        clock = clock + dt
         baseUpdate(self, dt)
       end
 
@@ -150,8 +143,6 @@ return function(mod)
         -- base draw and get it back after, like the title above.  The
         -- highlighted row scrolls; the rest rest on their front.
         local swapped = {}
-        if self.index ~= seenIndex then seenIndex, since = self.index, now() end
-        local clock = now() - since
         for row = 1, self.rows or 0 do
           local i = self.scroll + row
           local item = self.items[i]
