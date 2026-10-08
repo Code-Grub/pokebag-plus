@@ -20,7 +20,10 @@ local ITEMS = {
 -- fixture resets it.  Pass true to inherit it instead, which is how the
 -- reopen test gets a second bag that remembers the first one's pocket.
 local function fixture(keepPocket)
-  if not keepPocket then PocketBag.lastPocket = 1 end
+  if not keepPocket then
+    PocketBag.lastPocket = 1
+    PocketBag.cursors = {}
+  end
   local save = {
     bagOrder = { "POTION", "POKE_BALL", "ANTIDOTE", "GREAT_BALL",
                  "ULTRA_BALL", "BICYCLE" },
@@ -66,6 +69,43 @@ bag:page(-1)                         -- back to ITEMS
 T.eq(list.index, 2, "ITEMS remembers where the cursor was")
 bag:page(1)                          -- to BALLS again
 T.eq(list.index, 3, "and so does BALLS")
+
+-- the cursor survives the bag closing: a second bag opens where the first left
+do
+  local first, l1 = fixture()
+  l1.index = 2                         -- ANTIDOTE in ITEMS
+  first:page(1)                        -- to BALLS
+  l1.index = 3                         -- ULTRA BALL
+  first:remember()                     -- what update() does each frame
+  local second, l2 = fixture(true)     -- the bag is closed and reopened
+  T.eq(second:key(), "BALLS", "reopens on the pocket it closed on")
+  T.eq(l2.index, 3, "and on the item it closed on")
+  second:page(-1)
+  T.eq(l2.index, 2, "the other pocket kept its place too")
+
+  -- the remembered row may be gone: clamp rather than point past the end
+  local third, l3, save3 = fixture(true)
+  l3.index = 3
+  third:remember()
+  save3.bagOrder = { "POTION", "POKE_BALL", "BICYCLE" }
+  save3.inventory = { POTION = 5, POKE_BALL = 8, BICYCLE = 1 }
+  local fourth, l4 = (function()
+    local l = { items = {}, index = 1, scroll = 0, title = "" }
+    local b = PocketBag.new(l, { save = save3, items = ITEMS, Pockets = Pockets,
+      isBall = function(id) return BALLS[id] or false end })
+    return b, l
+  end)()
+  T.eq(l4.index, 1, "a shrunken pocket clamps the remembered cursor")
+
+  -- a window height keeps the remembered row on screen
+  PocketBag.cursors = { BALLS = { index = 3, scroll = 0 } }
+  PocketBag.lastPocket = 2
+  local ls = { items = {}, index = 1, scroll = 0, title = "", rows = 2 }
+  PocketBag.new(ls, { save = select(3, fixture(true)), items = ITEMS, Pockets = Pockets,
+    isBall = function(id) return BALLS[id] or false end })
+  T.eq(ls.index, 3, "index restored under a short window")
+  T.eq(ls.scroll, 1, "and scrolled so it is visible")
+end
 
 -- the title follows the pocket
 T.eq(list.title, "BALLS", "the title is the pocket label")

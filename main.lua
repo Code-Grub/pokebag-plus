@@ -132,6 +132,9 @@ return function(mod)
         if self.index ~= seenIndex then seenIndex, clock = self.index, 0 end
         clock = clock + dt
         baseUpdate(self, dt)
+        -- after the base update, so a cursor move or a cancel is captured
+        -- before the bag can close
+        bag:remember()
       end
 
       -- ListMenu:draw ends by setting the colour back to white, so the

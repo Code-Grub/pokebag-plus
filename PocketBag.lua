@@ -14,16 +14,46 @@ PocketBag.__index = PocketBag
 -- state: it resets at boot, and nothing here ever writes the save.
 PocketBag.lastPocket = 1
 
+-- Where the cursor sat in each pocket, by pocket key -> { index, scroll }.
+-- Module state for the same reason as lastPocket: the bag is rebuilt on every
+-- open, so a per-instance table would forget the moment the bag closed.  Gen 2
+-- puts you back on the item you left; this does the same per pocket.  Also not
+-- save state.
+PocketBag.cursors = {}
+
 function PocketBag.new(list, env)
   local self = setmetatable({}, PocketBag)
   self.list = list
   self.env = env
   self.pocket = PocketBag.lastPocket
-  self.cursors = {}      -- pocket key -> { index, scroll }
   self.filtered = nil
   self.globalOf = {}
   self:refresh()
+  self:restore()
   return self
+end
+
+-- Record where the cursor is in the current pocket.
+function PocketBag:remember()
+  PocketBag.cursors[self:key()] = { index = self.list.index, scroll = self.list.scroll }
+end
+
+-- Put the cursor back where this pocket last left it, clamped to what the
+-- pocket holds now: an item may have been used up or tossed since.
+function PocketBag:restore()
+  local remembered = PocketBag.cursors[self:key()]
+  local n = #self.list.items
+  local index = math.max(1, math.min(remembered and remembered.index or 1, math.max(1, n)))
+  local scroll = remembered and remembered.scroll or 0
+  if scroll >= n then scroll = 0 end
+  -- keep the row on screen when the window height is known
+  local rows = self.list.rows
+  if rows and rows > 0 then
+    if index <= scroll then scroll = index - 1 end
+    if index > scroll + rows then scroll = index - rows end
+  end
+  self.list.index = index
+  self.list.scroll = scroll
 end
 
 function PocketBag:key()
@@ -119,17 +149,12 @@ end
 
 function PocketBag:page(delta)
   local order = self.env.Pockets.ORDER
-  -- remember where this pocket's cursor was
-  self.cursors[self:key()] = { index = self.list.index, scroll = self.list.scroll }
+  self:remember()
   self:clearSwap()
   self.pocket = ((self.pocket - 1 + delta) % #order) + 1
   PocketBag.lastPocket = self.pocket
   self:refresh()
-  local remembered = self.cursors[self:key()]
-  local n = #self.list.items
-  self.list.index = math.max(1, math.min(remembered and remembered.index or 1, math.max(1, n)))
-  self.list.scroll = remembered and remembered.scroll or 0
-  if self.list.scroll >= n then self.list.scroll = 0 end
+  self:restore()
 end
 
 -- Exchange two rows of the CURRENT pocket in the global save.bagOrder.
