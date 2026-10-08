@@ -3,6 +3,14 @@
 Written in the style described in [docs/changelog-style.md](docs/changelog-style.md):
 what changed for the player, with the reasoning left in the commit history.
 
+## [0.4.0] - 2026-10-08
+
+### Added
+
+- Each pocket remembers where your cursor was, even after you close the bag.
+  Reopen it and you land on the same item in the same pocket. It resets when
+  the game restarts, and your save is never touched.
+
 ## [0.3.1] - 2026-09-30
 
 ### Fixed
