@@ -23,30 +23,6 @@ of the four pockets, and keeps SELECT working, now confined to the pocket you
 are in. The TM/HM pocket is grouped and shows move names by default; both can
 be turned off.
 
-<p align="center">
-  <img src="images/screen_items.png" width="480" alt="The ITEMS pocket: the pocket name centred between two paging arrows, in a window sharing its borders with the item list below"/><br/>
-  <sub>The header shares its left and right borders with the bag window, and its bottom border is that window's top edge. The window on the left is the item preview.</sub>
-</p>
-
-<p align="center">
-  <img src="images/screen_balls.png" width="480" alt="The BALLS pocket with the Great Ball highlighted and its icon in the preview window"/><br/>
-  <sub>BALLS, with the highlighted Great Ball in the preview. The window only appears with a Gen 3 import</sub>
-</p>
-
-<p align="center">
-  <img src="images/screen_tmhm.png" width="480" alt="The TM/HM pocket: HMs first, then TMs, with the highlighted name scrolling and a disc icon in the preview window"/><br/>
-  <sub>HMs first, then TMs by number. The highlighted name scrolls when it is wider than the list</sub>
-</p>
-
-<p align="center">
-  <img src="images/screen_key.png" width="480" alt="The KEY ITEMS pocket, the longest of the four names, still clear of both arrows, with the Old Rod in the preview window"/><br/>
-  <sub>KEY ITEMS, the longest of the four names, still clear of both arrows. The preview follows the highlighted item</sub>
-</p>
-
-The arrows are drawn by hand rather than taken from the font. The charmap
-has a filled right arrow and no left one, and a glyph beside a hand-drawn
-cousin reads as mismatched, so both sides are drawn the same way.
-
 ## Try it
 
     cmd /c mklink /J game\mods\pokebag_plus <path to this repo>
