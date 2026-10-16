@@ -1,7 +1,7 @@
 {
   "id": "pokebag_plus",
   "name": "PokeBag Plus",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "api": 2,
   "entry": "main.lua",
   "profile": "content",
@@ -16,5 +16,31 @@
   "conflicts": [],
   "options_schema": "options.lua",
   "description": "Splits the bag into four pockets -- ITEMS, BALLS, KEY ITEMS and TM/HM -- paged with Left and Right. Keeps the vanilla 20 slot limit and acquisition order.",
-  "github": "Code-Grub/pokebag-plus"
+  "github": "Code-Grub/pokebag-plus",
+  "optional_imports": [
+    {
+      "id": "firered",
+      "name": "Pokemon FireRed (U) ROM",
+      "description": "Optional. Your own FireRed ROM, v1.0 or v1.1, used only to show item icons beside the bag. LeafGreen works too.",
+      "file": "firered.gba",
+      "format": "raw",
+      "size": 16777216,
+      "md5": [
+        "e26ee0d44e809351c8ce2d73c7400cdd",
+        "51901a6e40661b3914aa333c802e24e8"
+      ]
+    },
+    {
+      "id": "leafgreen",
+      "name": "Pokemon LeafGreen (U) ROM",
+      "description": "Optional. Your own LeafGreen ROM, v1.0 or v1.1, used only to show item icons beside the bag. FireRed works too.",
+      "file": "leafgreen.gba",
+      "format": "raw",
+      "size": 16777216,
+      "md5": [
+        "612ca9473451fa42b51d1711031ed5f6",
+        "9d33a02159e018d09073e700e1fd10fd"
+      ]
+    }
+  ]
 }

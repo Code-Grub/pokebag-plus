@@ -33,6 +33,7 @@ be turned off.
     luajit mods/pokebag_plus/tests/header_test.lua
     luajit mods/pokebag_plus/tests/marquee_test.lua
     luajit mods/pokebag_plus/tests/preview_test.lua
+    luajit mods/pokebag_plus/tests/rom_icons_test.lua
     python tools/modkit.py validate mods/pokebag_plus --base imported
 
 ## What changes
@@ -47,7 +48,7 @@ be turned off.
 - The TM/HM pocket shows each machine's move (`TM01 MEGA PUNCH`), lists HMs
   before TMs, and scrolls a name that is too wide for the list.
 - A small window beside the list previews the highlighted item's icon, when
-  you have a Gen 3 game imported.
+  you have supplied a FireRed or LeafGreen ROM.
 - The battle bag is the same four pockets, so there is one thing to learn
   rather than two.
 
@@ -72,11 +73,13 @@ vanilla.
 window attached to the left of the list. TMs show a disc matching their move's
 type, and an item with no icon of its own shows Gen 3's question mark.
 
-The icons are Gen 3's and are read from your own import, so **the window only
-appears once you have imported FireRed, LeafGreen or Emerald** in the game's
-launcher (IMPORTERS tab). Nothing is bundled with the mod. Without an import,
-or with the option off, the bag looks exactly as it did before. Ruby and
-Sapphire are not importable by the engine yet.
+The icons are Gen 3's and are read from a ROM you supply, so **the window only
+appears once you have given the mod a FireRed or LeafGreen ROM**. Open the mod
+in the launcher's MODS tab and pick your own US FireRed (v1.0 or v1.1) or
+LeafGreen (v1.0 or v1.1) file; either game is enough. The mod keeps no copy
+of the artwork. It reads the icons out of your ROM when the bag needs them.
+Without a ROM, or with the option off, the bag looks exactly as it did before.
+Other regions and revisions, Emerald, Ruby and Sapphire are not read.
 
 `GROUP TM/HM` is also on by default: the TM/HM pocket lists HMs first, then
 TMs, each in number order, instead of the order you found them. Because that

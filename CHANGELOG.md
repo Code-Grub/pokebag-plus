@@ -3,6 +3,17 @@
 Written in the style described in [docs/changelog-style.md](docs/changelog-style.md):
 what changed for the player, with the reasoning left in the commit history.
 
+## [0.5.0] - 2026-10-16
+
+### Changed
+
+- The item preview now reads its icons from a FireRed or LeafGreen ROM you
+  give the mod, instead of the game's own Gen 3 import. Open the mod in the
+  launcher and pick your US FireRed (v1.0 or v1.1) or LeafGreen (v1.0 or v1.1) ROM; the
+  preview shows as before once you have.
+  It no longer works from an Emerald import, and a Gen 3 import made for the
+  game itself no longer turns it on.
+
 ## [0.4.0] - 2026-10-08
 
 ### Added

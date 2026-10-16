@@ -52,33 +52,36 @@ T.eq(P.iconId({ id = "BOULDERBADGE" }, moves), P.UNKNOWN, "an unmapped item show
 T.eq(P.UNKNOWN, 0, "which is slot 0")
 T.eq(P.iconId(nil, moves), nil, "no item, no icon")
 
--- Availability: the panel exists only when the player has imported FireRed.
-local reads, images = {}, 0
+-- Availability: the panel exists only when the player supplied a ROM.
+local SIZE = 24 * 24 * 4
+local asked, images = {}, 0
 local function fixture(have)
-  reads, images = {}, 0
-  return P.new({
-    read = function(path)
-      reads[#reads + 1] = path
-      return have[path] and string.rep("\1", 24 * 24 * 4) or nil
+  asked, images = {}, 0
+  local source = {
+    available = function() return next(have) ~= nil end,
+    icon = function(_, id)
+      asked[#asked + 1] = id
+      return have[id]
     end,
+  }
+  return P.new({
+    source = source,
     image = function(bytes)
       images = images + 1
       return { bytes = bytes }
     end,
   })
 end
+local icon = string.rep("\1", SIZE)
 
 local none = fixture({})
-T.eq(none:available(), false, "no cache, no panel")
-T.eq(none:available(), false, "and the answer is remembered")
-T.eq(#reads, #P.ROOTS + 1, "so the disk is asked once per source, and never again")
-T.eq(none:image(4), nil, "nothing is loaded without a cache")
-T.eq(images, 0, "no image is built")
+T.eq(none:available(), false, "no ROM, no panel")
+T.eq(none:image(4), nil, "nothing is loaded without one")
+T.eq(#asked, 0, "the source is not even asked for an icon")
+T.eq(images, 0, "and no image is built")
 
-local have = fixture({ [P.path(4)] = true, [P.path(13)] = true })
-T.eq(have:available(), true, "with the cache present the panel is on")
-T.eq(P.path(4), "firered/data/generated/gba/items/bag/icons/4.rgba",
-  "icons are read from the FireRed cache, not the active game's")
+local have = fixture({ [4] = icon, [13] = icon })
+T.eq(have:available(), true, "with a ROM the panel is on")
 local a = have:image(13)
 T.check(a ~= nil, "a present icon loads")
 T.eq(have:image(13), a, "and is built once")
@@ -86,91 +89,19 @@ T.eq(images, 1, "one image")
 T.eq(have:image(14), nil, "an absent icon is nil")
 have:image(14)
 local misses = 0
-for _, r in ipairs(reads) do if r == P.path(14) then misses = misses + 1 end end
+for _, id in ipairs(asked) do if id == 14 then misses = misses + 1 end end
 T.eq(misses, 1, "and the miss is remembered too")
 
--- LeafGreen has the same icons (byte for byte: all 376 compared) under its own
--- cache folder, so a player who imported only that gets the panel too.
-T.eq(P.path(4, "leafgreen"), "leafgreen/data/generated/gba/items/bag/icons/4.rgba",
-  "LeafGreen's icons live under its own prefix")
-local lg = fixture({ [P.path(4, "leafgreen")] = true, [P.path(13, "leafgreen")] = true })
-T.eq(lg:available(), true, "a LeafGreen-only import turns the panel on")
-T.check(lg:image(13) ~= nil, "and its icons load from the leafgreen tree")
-local lgOnly = {}
-for _, r in ipairs(reads) do lgOnly[#lgOnly + 1] = r end
-T.eq(lgOnly[#lgOnly], P.path(13, "leafgreen"), "the icon is read from the tree that answered the probe")
+-- A truncated icon is not an icon.
+local short = fixture({ [4] = "\1\2\3" })
+T.eq(short:image(4), nil, "a short icon is rejected before it reaches the image builder")
+T.eq(images, 0, "so no image is built")
 
-local both = fixture({ [P.path(4)] = true, [P.path(4, "leafgreen")] = true,
-                       [P.path(13)] = true, [P.path(13, "leafgreen")] = true })
-T.eq(both:available(), true, "with both imported the panel is on")
-both:image(13)
-T.eq(reads[#reads], P.path(13), "and FireRed's tree wins")
-
--- Emerald keeps its icons as ONE strip, 24 wide and 24 * count tall, in
--- emerald/.../rse/bag/icons.rgba.  Icon n is the n-th 24x24 slice.
-local SLICE = 24 * 24 * 4
-local function strip(count)
-  local parts = {}
-  for i = 0, count - 1 do parts[#parts + 1] = string.rep(string.char(i % 256), SLICE) end
-  return table.concat(parts)
-end
-local function emerald(count)
-  reads, images = {}, 0
-  local bytes = strip(count or 377)
-  local got = {}
-  local pv = P.new({
-    read = function(path)
-      reads[#reads + 1] = path
-      return path == P.STRIP and bytes or nil
-    end,
-    image = function(b) got[#got + 1] = b return { bytes = b } end,
-  })
-  return pv, got
-end
-
-local em, got = emerald()
-T.eq(P.STRIP, "emerald/data/generated/gba/rse/bag/icons.rgba", "Emerald's strip lives in its own rse tree")
-T.eq(em:available(), true, "an Emerald-only import turns the panel on")
-em:image(13)
-T.eq(#got[1], SLICE, "an icon is one 24x24 slice of the strip")
-T.eq(got[1]:byte(1), 13, "and it is slice 13, not slice 0")
-T.eq(got[1]:byte(SLICE), 13, "through to its last byte")
-em:image(100); em:image(100)
-T.eq(#got, 2, "each icon is built once")
-local strips = 0
-for _, r in ipairs(reads) do if r == P.STRIP then strips = strips + 1 end end
-T.eq(strips, 1, "and the strip itself is read once")
-
--- Emerald's table carries FireRed's key items in the same slots (checked
--- against a real Emerald import), so the same ids are read, 349 and up included.
-em:image(349); em:image(360)
-T.eq(got[#got - 1]:byte(1), 349 % 256, "a FRLG key item is read from its own slot in Emerald's strip")
-T.eq(got[#got]:byte(1), 360 % 256, "and so is the bicycle")
-T.eq(P.ICON.OAKS_PARCEL, 349, "OAKS PARCEL")
-T.eq(P.ICON.TOWN_MAP, 361, "TOWN MAP")
-
-local tiny = P.new({
-  read = function(path) return path == P.STRIP and string.rep("", SLICE) or nil end,
-  image = function() error("must not be called") end,
+-- The image builder may fail (it returns nil); that is remembered as a miss.
+local broken = P.new({
+  source = { available = function() return true end, icon = function() return icon end },
+  image = function() return nil end,
 })
-T.eq(tiny:available(), false, "a strip too short to hold the probe icon is not an import")
-
--- FireRed wins over Emerald when both exist.
-local mixed = P.new({
-  read = function(path)
-    if path == P.path(4) then return string.rep("", SLICE) end
-    if path == P.STRIP then return strip(377) end
-  end,
-  image = function(b) return { bytes = b } end,
-})
-T.eq(mixed:available(), true, "with both the panel is on")
-T.eq(mixed.root, "firered", "and FireRed's tree is the one used")
-
--- A truncated file is not an icon.
-local short = P.new({
-  read = function() return "\1\2\3" end,
-  image = function() error("must not be called") end,
-})
-T.eq(short:image(4), nil, "a short file is rejected before it reaches the image builder")
+T.eq(broken:image(4), nil, "an icon the image builder refuses is nil")
 
 T.finish("preview")

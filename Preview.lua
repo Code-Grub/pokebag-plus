@@ -1,15 +1,12 @@
 -- The item preview: the highlighted item's Gen 3 icon in a small window that
 -- reads as a tab off the left of the bag window.
 --
--- The icons are Gen 3's own, baked into the player's cache when they import
--- FireRed, LeafGreen or Emerald ("Bag & Items Graphics").  Nothing is bundled: a
--- player who has imported neither gets no panel at all, and the bag looks as
--- it always did.  They are read from that game's tree by explicit path,
--- because the engine's usual accessor reads the ACTIVE game's cache and a
--- Gen 1 session's is Red's.
+-- The icons are Gen 3's own, read from a FireRed or LeafGreen ROM the player
+-- supplied (see RomIcons.lua).  Nothing is bundled: a player who has supplied
+-- neither gets no panel at all, and the bag looks as it always did.
 --
--- Files and the image builder are passed in so this has no engine dependency
--- and tests with dofile alone.
+-- The icon source and the image builder are passed in so this has no engine
+-- dependency and tests with dofile alone.
 
 local Preview = {}
 
@@ -80,67 +77,27 @@ function Preview.iconId(def, moves)
   return Preview.ICON[def.id] or Preview.UNKNOWN
 end
 
--- FireRed is tried first.  The two games' icons are the same art (all 376
--- compared byte for byte between the 1.1 imports), so which one answers does
--- not change what is drawn.
-Preview.ROOTS = { "firered", "leafgreen" }
-
-function Preview.path(id, root)
-  return ("%s/data/generated/gba/items/bag/icons/%d.rgba"):format(root or "firered", id)
-end
-
--- Emerald's import bakes the same icons a different way: one strip, 24 wide
--- and 24 * count tall, icon n being the n-th 24x24 slice.  Tried after the
--- per-file trees.  The ids are the same ones: its table carries FireRed's own
--- key items (Oak's Parcel at 349 through Town Map at 361) in the same slots,
--- checked against a real Emerald import, so one id table serves all three.
-Preview.STRIP = "emerald/data/generated/gba/rse/bag/icons.rgba"
-local SLICE = Preview.SIZE * Preview.SIZE * 4
-
--- env.read(path) -> bytes or nil;  env.image(bytes) -> an image or nil.
+-- source:available() -> bool;  source:icon(id) -> 24x24 RGBA bytes or nil
+-- env.image(bytes) -> an image or nil.
 function Preview.new(env)
   return setmetatable({ env = env, cache = {} }, { __index = Preview })
 end
 
--- Has the player imported FireRed, LeafGreen or Emerald?  Asked once per bag:
--- a probe of one icon that every import has (the Poke Ball) under each tree in
--- turn, then Emerald's strip, and the answer, including which one gave it, is
--- kept.
+-- Has the player supplied a ROM the icons can be read from?
 function Preview:available()
-  if self.ready == nil then
-    self.ready = false
-    for _, root in ipairs(Preview.ROOTS) do
-      if self.env.read(Preview.path(4, root)) ~= nil then
-        self.ready, self.root = true, root
-        break
-      end
-    end
-    if not self.ready then
-      local strip = self.env.read(Preview.STRIP)
-      -- long enough to hold slot 4, the probe icon
-      if strip and #strip >= SLICE * 5 then
-        self.ready, self.root, self.strip = true, "emerald", strip
-      end
-    end
-  end
-  return self.ready
+  return self.env.source:available()
 end
 
 -- The built image for an icon slot, or nil.  A miss is remembered as well as
--- a hit, so a missing icon costs one disk read, not one per frame.
+-- a hit, so a missing icon costs one lookup, not one per frame.
 function Preview:image(id)
   if not self:available() then return nil end
   local got = self.cache[id]
   if got ~= nil then return got or nil end
-  local bytes
-  if self.strip then
-    bytes = self.strip:sub(id * SLICE + 1, (id + 1) * SLICE)
-  else
-    bytes = self.env.read(Preview.path(id, self.root))
-  end
+  local bytes = self.env.source:icon(id)
   local img = nil
   -- RGBA, 24x24; anything shorter is not an icon
-  if bytes and #bytes >= SLICE then
+  if bytes and #bytes >= Preview.SIZE * Preview.SIZE * 4 then
     img = self.env.image(bytes)
   end
   self.cache[id] = img or false

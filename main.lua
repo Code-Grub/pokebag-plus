@@ -69,9 +69,21 @@ return function(mod)
   local Strings = require("src.core.Strings")
   local Marquee = sibling("Marquee.lua")
   local Preview = sibling("Preview.lua")
-  if not (Marquee and Preview) then return end
-  local CacheFs = require("src.import.CacheFs")
+  local RomIcons = sibling("RomIcons.lua")
+  if not (Marquee and Preview and RomIcons) then return end
   local PaletteFX = require("src.render.PaletteFX")
+
+  -- A pcall'd read: a failed read is a missing icon, never a broken bag.
+  local romIcons = RomIcons.new(
+    function(id, offset, length)
+      local ok, bytes = pcall(mod.imports.read, mod.imports, id, offset, length)
+      return ok and bytes or nil
+    end,
+    function(id)
+      local ok, info = pcall(mod.imports.info, mod.imports, id)
+      local md5 = ok and type(info) == "table" and info.md5
+      return type(md5) == "string" and md5:lower() or nil
+    end)
 
   mod.content.screens:register("BagMenu", {
     new = function(game, opts)
@@ -102,10 +114,12 @@ return function(mod)
         end,
       })
 
-      -- The item preview.  readAt takes an exact path, so FireRed's tree is
-      -- reachable from a Gen 1 session (CacheFs.read would prepend Red's).
+      -- The item preview.  Icons come out of a FireRed or LeafGreen ROM the
+      -- player supplied through the launcher (optional_imports), read in
+      -- bounded pieces by mod.imports; the engine's own cache is not touched.
+      -- The source is built once and shared, so each icon is decoded once.
       local preview = Preview.new({
-        read = function(path) return CacheFs.readAt(path) end,
+        source = romIcons,
         image = function(bytes)
           local ok, data = pcall(love.image.newImageData,
             Preview.SIZE, Preview.SIZE, "rgba8", bytes)
