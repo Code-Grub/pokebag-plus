@@ -23,19 +23,6 @@ of the four pockets, and keeps SELECT working, now confined to the pocket you
 are in. The TM/HM pocket is grouped and shows move names by default; both can
 be turned off.
 
-## Try it
-
-    cmd /c mklink /J game\mods\pokebag_plus <path to this repo>
-    cd game
-    luajit mods/pokebag_plus/tests/pokebag_plus_test.lua
-    luajit mods/pokebag_plus/tests/pocket_bag_test.lua
-    luajit mods/pokebag_plus/tests/pockets_test.lua
-    luajit mods/pokebag_plus/tests/header_test.lua
-    luajit mods/pokebag_plus/tests/marquee_test.lua
-    luajit mods/pokebag_plus/tests/preview_test.lua
-    luajit mods/pokebag_plus/tests/rom_icons_test.lua
-    python tools/modkit.py validate mods/pokebag_plus --base imported
-
 ## What changes
 
 - The bag is four pockets instead of one flat list. Left and Right page
